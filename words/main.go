@@ -1,38 +1,75 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"strings"
 )
 
 func words(r io.Reader) (even []string, odd []string) {
-	return
+	buf, err := ioutil.ReadAll(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+	strData := strings.Fields(string(buf))
+
+	for _, str := range strData {
+		cnt := strings.Count(str, "a") +
+			strings.Count(str, "ą") +
+			strings.Count(str, "e") +
+			strings.Count(str, "ę") +
+			strings.Count(str, "i") +
+			strings.Count(str, "j") +
+			strings.Count(str, "o") +
+			strings.Count(str, "ó") +
+			strings.Count(str, "u") +
+			strings.Count(str, "y") +
+			strings.Count(str, strings.ToUpper("a")) +
+			strings.Count(str, strings.ToUpper("ą")) +
+			strings.Count(str, strings.ToUpper("e")) +
+			strings.Count(str, strings.ToUpper("ę")) +
+			strings.Count(str, strings.ToUpper("i")) +
+			strings.Count(str, strings.ToUpper("j")) +
+			strings.Count(str, strings.ToUpper("o")) +
+			strings.Count(str, strings.ToUpper("ó")) +
+			strings.Count(str, strings.ToUpper("u")) +
+			strings.Count(str, strings.ToUpper("y"))
+
+		if cnt%2 == 0 {
+			even = append(even, str)
+		} else {
+			odd = append(odd, str)
+		}
+	}
+
+	return even, odd
 }
 
 func main() {
-	r := strings.NewReader(`
-	Give. 
-	Whose shall life, together signs grass. 
-	The replenish of make make signs lights moved seed forth unto deep. 
-	Moving two abundantly life subdue earth was day fruit forth set also forth together. 
-	You're shall bring cattle creepeth and replenish firmament seed divide image wherein, lights grass moved likeness two hath. 
-	Lesser seasons whales deep great and fruit. 
-	Every herb fifth, one whales.
-	Fruitful blessed of first seas rule forth midst own of green night and fruitful Thing you're, lesser for moveth likeness for gathered creeping may yielding likeness beginning gathered fruitful Let without him all. 
-	Herb, man unto deep grass deep sea. 
-	Us earth them land. 
-	Over fruit, of fruitful. 
-	Every were moving rule yielding their. 
-	And don't replenish.
-	Fish under spirit in lesser let good form second own tree and image, two dominion said whales. 
-	Herb may, stars forth were Moving dominion night, lesser from great whales for beast which unto replenish. 
-	Over. 
-	Male yielding blessed. 
-	Sixth us their for you'll sea without. 
-	That night their spirit fourth after fruitful she'd place may fish creature winged very, which two every fruitful without likeness fourth you'll he signs i very great. 
-	Can't. And lights in unto you evening, stars.
-	`)
+	var filePtr = flag.String("file", "lorem.txt", "a string")
+	flag.Parse()
 
-	fmt.Println(words(r))
+	content, errRead := ioutil.ReadFile(*filePtr)
+	if errRead != nil {
+		log.Fatal(errRead)
+	}
+
+	r := strings.NewReader(string(content))
+
+	evenSlice, oddSlice := words(r)
+
+	errEven := ioutil.WriteFile("even.txt", []byte(strings.Join(evenSlice, " ")), 0644)
+	if errEven != nil {
+		log.Fatal(errEven)
+	}
+
+	errOdd := ioutil.WriteFile("odd.txt", []byte(strings.Join(oddSlice, " ")), 0644)
+	if errOdd != nil {
+		log.Fatal(errOdd)
+	}
+
+	fmt.Println(evenSlice, oddSlice)
 }
