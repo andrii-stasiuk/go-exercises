@@ -57,9 +57,7 @@ func main() {
 		log.Fatal(errRead)
 	}
 
-	r := strings.NewReader(string(content))
-
-	evenSlice, oddSlice := words(r)
+	evenSlice, oddSlice := words(strings.NewReader(string(content)))
 
 	errEven := ioutil.WriteFile("even.txt", []byte(strings.Join(evenSlice, " ")), 0644)
 	if errEven != nil {
