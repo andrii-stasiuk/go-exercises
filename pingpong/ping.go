@@ -6,25 +6,26 @@ import (
 	"time"
 )
 
+func ping(ch chan string) {
+	amt := time.Duration(100 + rand.Intn(900))
+	time.Sleep(time.Millisecond * amt)
+	ch <- "ping"
+}
+
+func pong(ch chan string) {
+	amt := time.Duration(100 + rand.Intn(900))
+	time.Sleep(time.Millisecond * amt)
+	ch <- "pong"
+}
+
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	ch := make(chan string)
 	for {
-
-		go func() {
-			amt := time.Duration(100 + rand.Intn(900))
-			time.Sleep(time.Millisecond * amt)
-			ch <- "ping"
-		}()
+		go ping(ch)
 		fmt.Println(<-ch)
-
-		go func() {
-			amt := time.Duration(100 + rand.Intn(900))
-			time.Sleep(time.Millisecond * amt)
-			ch <- "pong"
-		}()
+		go pong(ch)
 		fmt.Println(<-ch)
-
 	}
 
 	// var input string
