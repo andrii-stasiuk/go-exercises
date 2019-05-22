@@ -27,7 +27,4 @@ func main() {
 		go pong(ch)
 		fmt.Println(<-ch)
 	}
-
-	// var input string
-	// fmt.Scanln(&input)
 }
