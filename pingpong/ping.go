@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func pingpong(ch chan string) {
+func pingpong(ch <-chan string) {
 	amt := time.Duration(100 + rand.Intn(900))
 	time.Sleep(time.Millisecond * amt)
 	fmt.Println(<-ch)
