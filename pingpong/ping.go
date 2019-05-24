@@ -7,8 +7,7 @@ import (
 )
 
 func pingpong(ch <-chan string) {
-	amt := time.Duration(100 + rand.Intn(900))
-	time.Sleep(time.Millisecond * amt)
+	time.Sleep(time.Millisecond * time.Duration(100+rand.Intn(900)))
 	fmt.Println(<-ch)
 }
 
