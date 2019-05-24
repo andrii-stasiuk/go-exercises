@@ -28,6 +28,10 @@ func UserSaver(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Saved\n"))
 }
 
+func UserLoader(w http.ResponseWriter, r *http.Request) {
+	w.Write(LoadFromFile())
+}
+
 func UserCreator(w http.ResponseWriter, r *http.Request) {
 	usrset, ok := NewDB().Set()
 	if ok == true {
@@ -107,8 +111,30 @@ func (r *Database) Set() (User, bool) {
 }
 
 func SaveToFile() {
-	txt, _ := json.Marshal(NewDB().users)
-	ioutil.WriteFile("database.txt", []byte(txt), 0644)
+	//NewDB().users[0] = User{0, "System", "Field", strconv.FormatUint(lastElem, 10)}
+	//var us map[uint64]map[uint64]User
+	us := make(map[uint64]map[uint64]User)
+	us[lastElem] = NewDB().users
+
+	//content, _ := json.Marshal(NewDB().users)
+	content, _ := json.Marshal(us)
+	ioutil.WriteFile("database.txt", []byte(content), 0644)
+}
+
+func LoadFromFile() []byte {
+	content, _ := ioutil.ReadFile("database.txt")
+
+	us := make(map[uint64]map[uint64]User) //
+	json.Unmarshal([]byte(content), &us)   //
+	// json.Unmarshal([]byte(content), &NewDB().users)
+
+	for k := range us {
+		lastElem = k
+		NewDB().users = us[k]
+	}
+
+	// lastElem, _ = strconv.ParseUint(NewDB().users[0].Email, 10, 64)
+	return content //[]byte(strconv.FormatUint(lastElem, 10))
 }
 
 var innerDB *Database
@@ -138,7 +164,8 @@ func main() {
 	r.HandleFunc("/users/{id:[0-9]+}/", UserGetter).Methods("GET")
 
 	r.HandleFunc("/users/save/", UserSaver).Methods("GET")
+	r.HandleFunc("/users/load/", UserLoader).Methods("GET")
 
 	// Bind to a port and pass our router in
-	log.Fatal(http.ListenAndServe(":8001", r))
+	log.Fatal(http.ListenAndServe(":8002", r))
 }
