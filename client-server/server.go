@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -21,26 +23,49 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("HTTP Error 503 (Service Unavailable)\n"))
 }
 
+func UserSaver(w http.ResponseWriter, r *http.Request) {
+	SaveToFile()
+	w.Write([]byte("Saved\n"))
+}
+
 func UserCreator(w http.ResponseWriter, r *http.Request) {
-	id := NewDB().Set().ID
-	usr := NewDB().Get(id)
-	w.Write([]byte("Created user: " + strconv.FormatUint(usr.ID, 10) + " " + usr.Name + " " + usr.Surname))
+	usrset, ok := NewDB().Set()
+	if ok == true {
+		usr, ok := NewDB().Get(usrset.ID)
+		if ok == true {
+			w.Write([]byte("Created user: " + strconv.FormatUint(usr.ID, 10) + " " + usr.Name + " " + usr.Surname))
+		} else {
+			w.Write([]byte("Error while getting data of created user"))
+		}
+	} else {
+		w.Write([]byte("Error while creating user"))
+	}
 }
 
 func UserDeleter(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	strtoint, _ := strconv.ParseUint(vars["id"], 10, 64)
-	w.Write([]byte("Deleted: " + NewDB().Delete(strtoint)))
+	strtoint, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err == nil {
+		usrset, deleted := NewDB().Delete(strtoint)
+		if deleted == true {
+			w.Write([]byte("Deleted: " + usrset))
+		} else {
+			w.Write([]byte("Error while getting user: " + usrset))
+		}
+	}
 }
 
 func UserGetter(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	strtoint, _ := strconv.ParseUint(vars["id"], 10, 64)
-	//n, err := strconv.ParseInt(s, 10, 64)
-	// if err == nil {
-	// 	fmt.Printf("%d of type %T", n, n)
-	// }
-	w.Write([]byte("Get user: " + NewDB().Get(uint64(strtoint)).Name + " " + NewDB().Get(uint64(strtoint)).Surname))
+	strtoint, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err == nil {
+		usrset, ok := NewDB().Get(uint64(strtoint))
+		if ok == true {
+			w.Write([]byte("Get user: " + usrset.Name + " " + usrset.Surname))
+		} else {
+			w.Write([]byte("Error while getting user"))
+		}
+	}
 }
 
 type Database struct {
@@ -48,25 +73,42 @@ type Database struct {
 	users map[uint64]User
 }
 
-func (r *Database) Delete(usr uint64) string {
-	dl := r.users[usr].Name + r.users[usr].Surname
-	delete(r.users, usr)
-	return dl
+func (r *Database) Delete(usrID uint64) (string, bool) {
+	deletedUser := ""
+	if _, exists := r.users[usrID]; exists {
+		deletedUser = r.users[usrID].Name + " " + r.users[usrID].Surname
+		delete(r.users, usrID)
+	} else {
+		return "Error (user doesnt exists)", false
+	}
+	if _, exists := r.users[usrID]; exists {
+		return "Error (cant delete user)", false
+	} else {
+		return deletedUser, true
+	}
 }
 
-func (r *Database) Get(usr uint64) User {
-	// if us == 1 {
-	// 	return User{1, "Andrii", "Stasiuk", "as@ges.sh"}
-	// } else {
-	return r.users[usr]
-	// }
+func (r *Database) Get(usr uint64) (User, bool) {
+	if _, ok := r.users[usr]; ok {
+		return r.users[usr], true
+	} else {
+		return User{}, false
+	}
 }
 
-func (r *Database) Set() User {
+func (r *Database) Set() (User, bool) {
 	lastElem++
-	r.users[lastElem] = User{lastElem, "John" + strconv.FormatUint(lastElem, 10), "Smith", "as@ges.sh"}
-	return r.users[lastElem]
-	//r.users[id] := 12
+	r.users[lastElem] = User{lastElem, "John" + strconv.FormatUint(lastElem, 10), "Smith" + strconv.FormatUint(lastElem, 10), "as@ges.sh"}
+	if _, ok := r.users[lastElem]; ok {
+		return r.users[lastElem], true
+	} else {
+		return User{}, false
+	}
+}
+
+func SaveToFile() {
+	txt, _ := json.Marshal(NewDB().users)
+	ioutil.WriteFile("database.txt", []byte(txt), 0644)
 }
 
 var innerDB *Database
@@ -94,6 +136,8 @@ func main() {
 	r.HandleFunc("/users/", UserCreator).Methods("GET")                 // .Methods("POST")
 	r.HandleFunc("/users/del/{id:[0-9]+}/", UserDeleter).Methods("GET") // .Methods("DELETE")
 	r.HandleFunc("/users/{id:[0-9]+}/", UserGetter).Methods("GET")
+
+	r.HandleFunc("/users/save/", UserSaver).Methods("GET")
 
 	// Bind to a port and pass our router in
 	log.Fatal(http.ListenAndServe(":8001", r))
