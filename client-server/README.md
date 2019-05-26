@@ -6,7 +6,7 @@
 ### Treść zadania:
 #### Pierwsza część - SERWER
 Ta część zadania polega na stworzeniu aplikacji(serwer), która będzie czekać na nowe żądania.
-Aplikacja ma posiadać 2 endpointy, które będą służyć do tworzenia nowych użytkowników oraz ich usuwania:
+Aplikacja ma posiadać 3 endpointy, które będą służyć do tworzenia nowych użytkowników oraz ich usuwania:
  - tworzenie użytkownika: `POST /users/`
  - usuwanie użytkownika `DELETE /users/{id}/`
  - pobiranie użytkownika `GET /users/{id}/`
