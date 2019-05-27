@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	handlers "go-exercises/client-server/inc"
+	io "go-exercises/client-server/inc"
 	"log"
 	"net/http"
-	handlers "server/inc"
-	io "server/inc"
 	"strconv"
 	"time"
 
