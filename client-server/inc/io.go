@@ -19,18 +19,18 @@ func CheckIP(addrFlag string) string {
 }
 
 // SaveToFile function is used to save the database file
-func SaveToFile(filename string) bool {
+func SaveToFile(filename string) error {
 	dbExport := make(map[uint64]map[uint64]User)
 	dbExport[lastElem] = GetDBInstance().users
 	content, err := json.Marshal(dbExport)
 	if err != nil {
-		panic(err)
+		return err
 	} else {
 		err := ioutil.WriteFile(filename, []byte(content), 0644)
 		if err != nil {
-			panic(err)
+			return err
 		} else {
-			return true
+			return nil
 		}
 	}
 }

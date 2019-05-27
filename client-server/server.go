@@ -55,10 +55,11 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(time.Second * time.Duration(safeDelay))
-			if io.SaveToFile(io.DataFile) {
+			if err := io.SaveToFile(io.DataFile); err == nil {
 				fmt.Println("The database was backed up at", time.Now())
 			} else {
-				fmt.Println("An unknown error occurred while database saving")
+				// fmt.Println("An unknown error occurred while database saving")
+				log.Println(err)
 			}
 		}
 	}()

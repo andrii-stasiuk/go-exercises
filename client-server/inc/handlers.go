@@ -3,6 +3,7 @@ package inc
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -92,10 +93,11 @@ func UserDeleter(w http.ResponseWriter, r *http.Request) {
 func UserSaver(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if SaveToFile(DataFile) {
+	if err := SaveToFile(DataFile); err == nil {
 		io.WriteString(w, `{"Status": "Database saved"}`)
 	} else {
-		io.WriteString(w, `{"Error": "Can't save database to a file"}`)
+		io.WriteString(w, `{"Error": "Can't save databcdase to a file"}`)
+		log.Println(err)
 	}
 }
 
