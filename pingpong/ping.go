@@ -6,18 +6,31 @@ import (
 	"time"
 )
 
-func pingpong(ch <-chan string) {
-	time.Sleep(time.Millisecond * time.Duration(100+rand.Intn(900)))
-	fmt.Println(<-ch)
+func ping(ch chan<- string) {
+	for {
+		ch <- "ping"
+	}
+}
+
+func pong(ch chan<- string) {
+	for {
+		ch <- "pong"
+	}
+}
+
+func printer(ch <-chan string) {
+	for {
+		time.Sleep(time.Millisecond * time.Duration(100+rand.Intn(900)))
+		fmt.Println(<-ch)
+	}
 }
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	ch := make(chan string)
+	go ping(ch)
+	go pong(ch)
+	go printer(ch)
 	for {
-		go pingpong(ch)
-		ch <- "ping"
-		go pingpong(ch)
-		ch <- "pong"
 	}
 }
