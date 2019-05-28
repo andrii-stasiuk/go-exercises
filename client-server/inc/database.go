@@ -1,6 +1,9 @@
 package inc
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"strconv"
 	"sync"
 )
@@ -9,7 +12,17 @@ var (
 	innerDB  *Database
 	lastElem uint64
 	once     sync.Once
+	// DataFile variable is used to specify the name of the database file
+	DataFile = "database.json"
 )
+
+// DatabaseErrors string type
+type DatabaseErrors string
+
+// Error: application error handling method
+func (e DatabaseErrors) Error() string {
+	return fmt.Sprintf(string(e))
+}
 
 // User structure of the user data
 type User struct {
@@ -28,15 +41,13 @@ type Database struct {
 // GetDBInstance singleton is used to get instance of the Database object
 func GetDBInstance() *Database {
 	once.Do(func() {
-		// mutex := new(sync.RWMutex)
-		// innerDB = &Database{*mutex, make(map[uint64]User)}
 		innerDB = &Database{users: make(map[uint64]User)}
 	})
 	return innerDB
 }
 
 // Set method is used to add new users or modify existing ones
-func (db *Database) Set(id, name, surname, email string) (User, bool) {
+func (db *Database) Set(id, name, surname, email string) (User, error) {
 	db.m.Lock()
 	defer db.m.Unlock()
 	if id != "" {
@@ -44,38 +55,74 @@ func (db *Database) Set(id, name, surname, email string) (User, bool) {
 		if err == nil {
 			db.users[digitID] = User{digitID, name, surname, email}
 			if usrget, ok := db.users[digitID]; ok {
-				return usrget, true
+				return usrget, nil
 			}
-			return User{}, false
+			return User{}, DatabaseErrors("Database.Set: can't change user data")
 		}
-		panic(err)
-	} else {
-		lastElem++
-		db.users[lastElem] = User{lastElem, name, surname, email}
-		if usrget, ok := db.users[lastElem]; ok {
-			return usrget, true
-		}
-		return User{}, false
+		return User{}, err
 	}
+	lastElem++
+	db.users[lastElem] = User{lastElem, name, surname, email}
+	if usrget, ok := db.users[lastElem]; ok {
+		return usrget, nil
+	}
+	return User{}, DatabaseErrors("Database.Set: can't create new user")
 }
 
 // Get method is used to retrieve user data
-func (db *Database) Get(usrID uint64) (User, bool) {
+func (db *Database) Get(usrID uint64) (User, error) {
 	db.m.Lock()
 	defer db.m.Unlock()
 	if usrget, ok := db.users[usrID]; ok {
-		return usrget, true
+		return usrget, nil
 	}
-	return User{}, false
+	return User{}, DatabaseErrors("Database.Get: user doesn't exists")
 }
 
 // Delete method is used to delete users
-func (db *Database) Delete(usrID uint64) (string, bool) {
+func (db *Database) Delete(usrID uint64) (string, error) {
 	db.m.Lock()
 	defer db.m.Unlock()
 	if usrdel, exists := db.users[usrID]; exists {
 		delete(db.users, usrID)
-		return usrdel.Name + " " + usrdel.Surname, true
+		return usrdel.Name + " " + usrdel.Surname, nil
 	}
-	return "Error: user doesn't exists", false
+	return "", DatabaseErrors("Database.Delete: user doesn't exists")
+}
+
+// SaveToFile method is used to save the database file
+func (db *Database) SaveToFile(filename string) error {
+	db.m.Lock()
+	defer db.m.Unlock()
+	dbExport := make(map[uint64]map[uint64]User)
+	dbExport[lastElem] = GetDBInstance().users
+	content, err := json.Marshal(dbExport)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(filename, []byte(content), 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// LoadFromFile method is used to load the database file
+func (db *Database) LoadFromFile(filename string) ([]byte, error) {
+	db.m.Lock()
+	defer db.m.Unlock()
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	dbImport := make(map[uint64]map[uint64]User)
+	err = json.Unmarshal([]byte(content), &dbImport)
+	if err != nil {
+		return nil, err
+	}
+	for i := range dbImport {
+		lastElem = i
+		GetDBInstance().users = dbImport[i]
+	}
+	return content, nil
 }

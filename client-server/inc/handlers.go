@@ -21,8 +21,8 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) {
 func UserCreator(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	usrset, created := GetDBInstance().Set(r.FormValue("id"), r.FormValue("name"), r.FormValue("surname"), r.FormValue("email"))
-	if created {
+	usrset, err := GetDBInstance().Set(r.FormValue("id"), r.FormValue("name"), r.FormValue("surname"), r.FormValue("email"))
+	if err == nil {
 		respond, err := json.Marshal(usrset)
 		if err != nil {
 			log.Println(err)
@@ -31,65 +31,71 @@ func UserCreator(w http.ResponseWriter, r *http.Request) {
 			w.Write(respond)
 		}
 	} else {
-		log.Println(created) // TODO1: change to error when Set() will return error (not bool)
+		log.Println(err)
 		io.WriteString(w, `{"Error": "Can't create/change user"}`)
 	}
 }
 
 // UserGetter function is used to process requests for receiving user data
-// TODO2: change to error
 func UserGetter(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	vars := mux.Vars(r)
 	strtoint, err := strconv.ParseUint(vars["id"], 10, 64)
 	if err == nil {
-		usrget, exists := GetDBInstance().Get(uint64(strtoint))
-		if exists {
+		usrget, err := GetDBInstance().Get(uint64(strtoint))
+		if err == nil {
 			respond, err := json.Marshal(usrget)
 			if err != nil {
-				panic(err)
+				log.Println(err)
+				io.WriteString(w, `{"Error": "Can't encode into JSON"}`)
 			} else {
 				w.Write(respond)
 			}
 		} else {
+			log.Println(err)
 			respond, err := json.Marshal(map[string]string{"Error": "Can't get user with ID " + vars["id"]})
 			if err != nil {
-				panic(err)
+				log.Println(err)
+				io.WriteString(w, `{"Error": "Can't encode into JSON"}`)
 			} else {
 				w.Write(respond)
 			}
 		}
 	} else {
-		panic(err)
+		io.WriteString(w, `{"Error": "Can't convert string field ID to integer"}`)
+		log.Println(err)
 	}
 }
 
 // UserDeleter function is used to process user deletion requests
-// TODO3: change to error
 func UserDeleter(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	vars := mux.Vars(r)
 	strtoint, err := strconv.ParseUint(vars["id"], 10, 64)
 	if err == nil {
-		if usrdel, deleted := GetDBInstance().Delete(strtoint); deleted {
+		if usrdel, err := GetDBInstance().Delete(strtoint); err == nil {
 			respond, err := json.Marshal(map[string]string{"Deleted user " + usrdel + " with ID": vars["id"]})
 			if err != nil {
-				panic(err)
+				log.Println(err)
+				io.WriteString(w, `{"Error": "Can't encode into JSON"}`)
 			} else {
 				w.Write(respond)
 			}
 		} else {
+			log.Println(err)
 			respond, err := json.Marshal(map[string]string{"Error": "Can't delete user with ID " + vars["id"]})
 			if err != nil {
-				panic(err)
+				log.Println(err)
+				io.WriteString(w, `{"Error": "Can't encode into JSON"}`)
 			} else {
 				w.Write(respond)
 			}
 		}
 	} else {
-		panic(err)
+		io.WriteString(w, `{"Error": "Can't convert string field ID to integer"}`)
+		log.Println(err)
 	}
 }
 
@@ -97,7 +103,7 @@ func UserDeleter(w http.ResponseWriter, r *http.Request) {
 func UserSaver(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := SaveToFile(DataFile); err == nil {
+	if err := GetDBInstance().SaveToFile(DataFile); err == nil {
 		io.WriteString(w, `{"Status": "Database saved"}`)
 	} else {
 		io.WriteString(w, `{"Error": "Can't save database to a file"}`)
@@ -109,7 +115,7 @@ func UserSaver(w http.ResponseWriter, r *http.Request) {
 func UserLoader(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if data, err := LoadFromFile(DataFile); err == nil {
+	if data, err := GetDBInstance().LoadFromFile(DataFile); err == nil {
 		w.Write(data)
 	} else {
 		io.WriteString(w, `{"Error": "Can't load database from a file"}`)

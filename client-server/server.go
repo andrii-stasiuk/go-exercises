@@ -3,15 +3,25 @@ package main
 import (
 	"flag"
 	"fmt"
+	database "go-exercises/client-server/inc"
 	handlers "go-exercises/client-server/inc"
-	io "go-exercises/client-server/inc"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
 )
+
+// CheckIP function is used to verify the correctness of the IP-address
+// and setting default value in case of error
+func CheckIP(addrFlag string) string {
+	if net.ParseIP(addrFlag) != nil {
+		return addrFlag
+	}
+	return "127.0.0.1" // Returns default IP-address of the localhost
+}
 
 func main() {
 	var databasePtr = flag.Bool("database", false, "Database load at program startup")
@@ -22,7 +32,7 @@ func main() {
 	fmt.Println("API server starting...")
 
 	if *databasePtr {
-		io.LoadFromFile(io.DataFile)
+		database.GetDBInstance().LoadFromFile(database.DataFile)
 	}
 	fmt.Println("Loaded database: " + strconv.FormatBool(*databasePtr))
 
@@ -45,20 +55,20 @@ func main() {
 
 	srv := &http.Server{
 		Handler: r,
-		Addr:    io.CheckIP(*addrPtr) + ":8000",
+		Addr:    CheckIP(*addrPtr) + ":8000",
 		// Enforce timeouts for created servers
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	fmt.Println("API server started successfully on " + io.CheckIP(*addrPtr))
+
+	fmt.Println("API server started successfully on " + CheckIP(*addrPtr))
 
 	go func() {
 		for {
 			time.Sleep(time.Second * time.Duration(safeDelay))
-			if err := io.SaveToFile(io.DataFile); err == nil {
+			if err := database.GetDBInstance().SaveToFile(database.DataFile); err == nil {
 				fmt.Println("The database was backed up at", time.Now())
 			} else {
-				// fmt.Println("An unknown error occurred while database saving")
 				log.Println(err)
 			}
 		}
