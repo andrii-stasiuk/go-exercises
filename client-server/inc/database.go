@@ -28,8 +28,9 @@ type Database struct {
 // GetDBInstance singleton is used to get instance of the Database object
 func GetDBInstance() *Database {
 	once.Do(func() {
-		mutex := new(sync.RWMutex)
-		innerDB = &Database{*mutex, make(map[uint64]User)}
+		// mutex := new(sync.RWMutex)
+		// innerDB = &Database{*mutex, make(map[uint64]User)}
+		innerDB = &Database{users: make(map[uint64]User)}
 	})
 	return innerDB
 }

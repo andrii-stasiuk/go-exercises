@@ -25,16 +25,19 @@ func UserCreator(w http.ResponseWriter, r *http.Request) {
 	if created {
 		respond, err := json.Marshal(usrset)
 		if err != nil {
-			panic(err)
+			log.Println(err)
+			io.WriteString(w, `{"Error": "Can't encode into JSON"}`)
 		} else {
 			w.Write(respond)
 		}
 	} else {
+		log.Println(created) // TODO1: change to error when Set() will return error (not bool)
 		io.WriteString(w, `{"Error": "Can't create/change user"}`)
 	}
 }
 
 // UserGetter function is used to process requests for receiving user data
+// TODO2: change to error
 func UserGetter(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -63,6 +66,7 @@ func UserGetter(w http.ResponseWriter, r *http.Request) {
 }
 
 // UserDeleter function is used to process user deletion requests
+// TODO3: change to error
 func UserDeleter(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -96,7 +100,7 @@ func UserSaver(w http.ResponseWriter, r *http.Request) {
 	if err := SaveToFile(DataFile); err == nil {
 		io.WriteString(w, `{"Status": "Database saved"}`)
 	} else {
-		io.WriteString(w, `{"Error": "Can't save databcdase to a file"}`)
+		io.WriteString(w, `{"Error": "Can't save database to a file"}`)
 		log.Println(err)
 	}
 }
@@ -105,7 +109,10 @@ func UserSaver(w http.ResponseWriter, r *http.Request) {
 func UserLoader(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if data, loaded := LoadFromFile(DataFile); loaded {
+	if data, err := LoadFromFile(DataFile); err == nil {
 		w.Write(data)
+	} else {
+		io.WriteString(w, `{"Error": "Can't load database from a file"}`)
+		log.Println(err)
 	}
 }
