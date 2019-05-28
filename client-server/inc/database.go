@@ -24,6 +24,19 @@ func (e DatabaseErrors) Error() string {
 	return fmt.Sprintf(string(e))
 }
 
+// Synchronizer boolean channel type for synchronization of work
+type Synchronizer chan bool
+
+// Stop method of Synchronizer type
+func (s Synchronizer) Stop() {
+	s <- bool(true)
+}
+
+// Resume method of Synchronizer type
+func (s Synchronizer) Resume() {
+	<-s
+}
+
 // User structure of the user data
 type User struct {
 	ID      uint64
@@ -34,22 +47,22 @@ type User struct {
 
 // Database structure of the users database
 type Database struct {
-	m     sync.RWMutex
+	sync  Synchronizer
 	users map[uint64]User
 }
 
 // GetDBInstance singleton is used to get instance of the Database object
 func GetDBInstance() *Database {
 	once.Do(func() {
-		innerDB = &Database{users: make(map[uint64]User)}
+		innerDB = &Database{sync: make(Synchronizer, 1), users: make(map[uint64]User)}
 	})
 	return innerDB
 }
 
 // Set method is used to add new users or modify existing ones
 func (db *Database) Set(id, name, surname, email string) (User, error) {
-	db.m.Lock()
-	defer db.m.Unlock()
+	db.sync.Stop()
+	defer db.sync.Resume()
 	if id != "" {
 		digitID, err := strconv.ParseUint(id, 10, 64)
 		if err == nil {
@@ -71,8 +84,8 @@ func (db *Database) Set(id, name, surname, email string) (User, error) {
 
 // Get method is used to retrieve user data
 func (db *Database) Get(usrID uint64) (User, error) {
-	db.m.Lock()
-	defer db.m.Unlock()
+	db.sync.Stop()
+	defer db.sync.Resume()
 	if usrget, ok := db.users[usrID]; ok {
 		return usrget, nil
 	}
@@ -81,8 +94,8 @@ func (db *Database) Get(usrID uint64) (User, error) {
 
 // Delete method is used to delete users
 func (db *Database) Delete(usrID uint64) (string, error) {
-	db.m.Lock()
-	defer db.m.Unlock()
+	db.sync.Stop()
+	defer db.sync.Resume()
 	if usrdel, exists := db.users[usrID]; exists {
 		delete(db.users, usrID)
 		return usrdel.Name + " " + usrdel.Surname, nil
@@ -92,8 +105,8 @@ func (db *Database) Delete(usrID uint64) (string, error) {
 
 // SaveToFile method is used to save the database file
 func (db *Database) SaveToFile(filename string) error {
-	db.m.Lock()
-	defer db.m.Unlock()
+	db.sync.Stop()
+	defer db.sync.Resume()
 	dbExport := make(map[uint64]map[uint64]User)
 	dbExport[lastElem] = GetDBInstance().users
 	content, err := json.Marshal(dbExport)
@@ -109,8 +122,8 @@ func (db *Database) SaveToFile(filename string) error {
 
 // LoadFromFile method is used to load the database file
 func (db *Database) LoadFromFile(filename string) ([]byte, error) {
-	db.m.Lock()
-	defer db.m.Unlock()
+	db.sync.Stop()
+	defer db.sync.Resume()
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
