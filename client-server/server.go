@@ -3,76 +3,65 @@ package main
 import (
 	"flag"
 	"fmt"
-	database "go-exercises/client-server/inc"
-	handlers "go-exercises/client-server/inc"
+	"go-exercises/client-server/database"
+	"go-exercises/client-server/handlers"
 	"log"
-	"net"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
 )
 
-// CheckIP function is used to verify the correctness of the IP-address
-// and setting default value in case of error
-func CheckIP(addrFlag string) string {
-	if net.ParseIP(addrFlag) != nil {
-		return addrFlag
-	}
-	return "127.0.0.1" // Returns default IP-address of the localhost
-}
-
 func main() {
-	var databasePtr = flag.Bool("database", false, "Database load at program startup")
-	var delayPtr = flag.Int("delay", 60, "Delay in seconds between saving the database")
-	var addrPtr = flag.String("addr", "127.0.0.1", "Server IPv4 address")
+	var newdbPtr = flag.Bool("create", false, "Create a new database")
+	var addrPtr = flag.String("addr", "127.0.0.1:8000", "Server IPv4 address")
+	var dbfilePtr = flag.String("file", "database.json", "Specify the name of the database file")
+	// #1.1 var delayPtr = flag.Int("delay", 60, "Delay in seconds between saving the database"
 	flag.Parse()
 
 	fmt.Println("API server starting...")
 
-	if *databasePtr {
-		database.GetDBInstance().LoadFromFile(database.DataFile)
-	}
-	fmt.Println("Loaded database: " + strconv.FormatBool(*databasePtr))
+	var db *database.Database
+	db = database.CreateDB(*dbfilePtr)
 
-	safeDelay := 5
-	if *delayPtr > safeDelay {
-		safeDelay = *delayPtr
+	if !(*newdbPtr) {
+		db.LoadFromFile()
+		fmt.Println("Loaded database: " + *dbfilePtr)
+	} else {
+		fmt.Println("Using database: " + *dbfilePtr)
 	}
-	fmt.Printf("Autosave interval set to: %d seconds\n", safeDelay)
+
+	var hl *handlers.Handlers
+	hl = &handlers.Handlers{Database: *db}
+
+	// #1.2 This is done to reduce server load
+	// if *delayPtr < 5 {
+	// 	*delayPtr = 5
+	// }
+	// fmt.Printf("Autosave interval set to: %d seconds\n", *delayPtr)
 
 	r := mux.NewRouter()
 	// Routes consist of a path and a handler function.
-	r.HandleFunc("/", handlers.DefaultHandler)
-	r.HandleFunc("/users/", handlers.UserCreator).Methods("POST")
-	r.HandleFunc("/users/{id:[0-9]+}/", handlers.UserGetter).Methods("GET")
-	r.HandleFunc("/users/{id:[0-9]+}/", handlers.UserDeleter).Methods("DELETE")
+	r.HandleFunc("/", hl.DefaultHandler)
+	r.HandleFunc("/users/", hl.UserCreator).Methods("POST")
+	r.HandleFunc("/users/{id:[0-9]+}/", hl.UserGetter).Methods("GET")
+	r.HandleFunc("/users/{id:[0-9]+}/", hl.UserDeleter).Methods("DELETE")
 
 	// Handlers reserved for testing purposes
-	r.HandleFunc("/users/save/", handlers.UserSaver).Methods("GET")
-	r.HandleFunc("/users/load/", handlers.UserLoader).Methods("GET")
+	r.HandleFunc("/users/save/", hl.UserSaver).Methods("GET")
+	r.HandleFunc("/users/load/", hl.UserLoader).Methods("GET")
 
 	srv := &http.Server{
 		Handler: r,
-		Addr:    CheckIP(*addrPtr) + ":8000",
+		Addr:    *addrPtr,
 		// Enforce timeouts for created servers
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
-	fmt.Println("API server started successfully on " + CheckIP(*addrPtr))
+	fmt.Println("API server started successfully on " + *addrPtr)
 
-	go func() {
-		for {
-			time.Sleep(time.Second * time.Duration(safeDelay))
-			if err := database.GetDBInstance().SaveToFile(database.DataFile); err == nil {
-				fmt.Println("The database was backed up at", time.Now())
-			} else {
-				log.Println(err)
-			}
-		}
-	}()
+	// #1.3. go db.RepeatSaving(*delayPtr)
 
 	log.Fatal(srv.ListenAndServe())
 }

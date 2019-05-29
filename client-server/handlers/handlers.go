@@ -1,7 +1,9 @@
-package inc
+/*Package handlers Controller*/
+package handlers
 
 import (
 	"encoding/json"
+	"go-exercises/client-server/database"
 	"io"
 	"log"
 	"net/http"
@@ -10,18 +12,23 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Handlers structure
+type Handlers struct {
+	Database database.Database
+}
+
 // DefaultHandler function is used to process requests to the root path
-func DefaultHandler(w http.ResponseWriter, r *http.Request) {
+func (hl *Handlers) DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	io.WriteString(w, `{"Alive": true}`)
 }
 
 // UserCreator function is used to process user creation or modification requests
-func UserCreator(w http.ResponseWriter, r *http.Request) {
+func (hl *Handlers) UserCreator(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	usrset, err := GetDBInstance().Set(r.FormValue("id"), r.FormValue("name"), r.FormValue("surname"), r.FormValue("email"))
+	usrset, err := hl.Database.Set(r.FormValue("id"), r.FormValue("name"), r.FormValue("surname"), r.FormValue("email"))
 	if err == nil {
 		respond, err := json.Marshal(usrset)
 		if err != nil {
@@ -30,6 +37,13 @@ func UserCreator(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.Write(respond)
 		}
+		// Saving the database when some user was actually added or changed
+		if err := hl.Database.SaveToFile(); err == nil {
+			io.WriteString(w, `{"Status": "Database saved"}`)
+		} else {
+			io.WriteString(w, `{"Error": "Can't save database to a file"}`)
+			log.Println(err)
+		}
 	} else {
 		log.Println(err)
 		io.WriteString(w, `{"Error": "Can't create/change user"}`)
@@ -37,13 +51,13 @@ func UserCreator(w http.ResponseWriter, r *http.Request) {
 }
 
 // UserGetter function is used to process requests for receiving user data
-func UserGetter(w http.ResponseWriter, r *http.Request) {
+func (hl *Handlers) UserGetter(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	vars := mux.Vars(r)
 	strtoint, err := strconv.ParseUint(vars["id"], 10, 64)
 	if err == nil {
-		usrget, err := GetDBInstance().Get(uint64(strtoint))
+		usrget, err := hl.Database.Get(uint64(strtoint))
 		if err == nil {
 			respond, err := json.Marshal(usrget)
 			if err != nil {
@@ -69,19 +83,26 @@ func UserGetter(w http.ResponseWriter, r *http.Request) {
 }
 
 // UserDeleter function is used to process user deletion requests
-func UserDeleter(w http.ResponseWriter, r *http.Request) {
+func (hl *Handlers) UserDeleter(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	vars := mux.Vars(r)
 	strtoint, err := strconv.ParseUint(vars["id"], 10, 64)
 	if err == nil {
-		if usrdel, err := GetDBInstance().Delete(strtoint); err == nil {
+		if usrdel, err := hl.Database.Delete(strtoint); err == nil {
 			respond, err := json.Marshal(map[string]string{"Deleted user " + usrdel + " with ID": vars["id"]})
 			if err != nil {
 				log.Println(err)
 				io.WriteString(w, `{"Error": "Can't encode into JSON"}`)
 			} else {
 				w.Write(respond)
+			}
+			// Saving the database when some user was actually deleted
+			if err := hl.Database.SaveToFile(); err == nil {
+				io.WriteString(w, `{"Status": "Database saved"}`)
+			} else {
+				io.WriteString(w, `{"Error": "Can't save database to a file"}`)
+				log.Println(err)
 			}
 		} else {
 			log.Println(err)
@@ -100,10 +121,10 @@ func UserDeleter(w http.ResponseWriter, r *http.Request) {
 }
 
 // UserSaver function is used to process requests to save the user database
-func UserSaver(w http.ResponseWriter, r *http.Request) {
+func (hl *Handlers) UserSaver(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := GetDBInstance().SaveToFile(DataFile); err == nil {
+	if err := hl.Database.SaveToFile(); err == nil {
 		io.WriteString(w, `{"Status": "Database saved"}`)
 	} else {
 		io.WriteString(w, `{"Error": "Can't save database to a file"}`)
@@ -112,10 +133,10 @@ func UserSaver(w http.ResponseWriter, r *http.Request) {
 }
 
 // UserLoader function is used to process requests to load the user database
-func UserLoader(w http.ResponseWriter, r *http.Request) {
+func (hl *Handlers) UserLoader(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if data, err := GetDBInstance().LoadFromFile(DataFile); err == nil {
+	if data, err := hl.Database.LoadFromFile(); err == nil {
 		w.Write(data)
 	} else {
 		io.WriteString(w, `{"Error": "Can't load database from a file"}`)

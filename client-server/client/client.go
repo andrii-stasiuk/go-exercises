@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	printer "go-exercises/client-server/client/inc"
-	requests "go-exercises/client-server/client/inc"
+	"go-exercises/client-server/client/printer"
+	"go-exercises/client-server/client/requests"
 	"os"
 	"strings"
 )
