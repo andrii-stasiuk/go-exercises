@@ -39,7 +39,7 @@ func (hl *Handlers) UserCreator(w http.ResponseWriter, r *http.Request) {
 		}
 		// Saving the database when some user was actually added or changed
 		if err := hl.Database.SaveToFile(); err == nil {
-			io.WriteString(w, `{"Status": "Database saved"}`)
+			// io.WriteString(w, `{"Status": "Database saved"}`)
 		} else {
 			io.WriteString(w, `{"Error": "Can't save database to a file"}`)
 			log.Println(err)
@@ -99,7 +99,7 @@ func (hl *Handlers) UserDeleter(w http.ResponseWriter, r *http.Request) {
 			}
 			// Saving the database when some user was actually deleted
 			if err := hl.Database.SaveToFile(); err == nil {
-				io.WriteString(w, `{"Status": "Database saved"}`)
+				// io.WriteString(w, `{"Status": "Database saved"}`)
 			} else {
 				io.WriteString(w, `{"Error": "Can't save database to a file"}`)
 				log.Println(err)
