@@ -43,7 +43,7 @@ func main() {
 	// Handlers reserved for testing purposes
 	r.HandleFunc("/users/save/", hl.UserSaver).Methods("GET")
 	r.HandleFunc("/users/load/", hl.UserLoader).Methods("GET")
-	w
+
 	srv := &http.Server{
 		Handler: r,
 		Addr:    *addrPtr,
