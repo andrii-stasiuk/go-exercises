@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"go-exercises/client-server/client/printer"
-	"go-exercises/client-server/client/requests"
 	"os"
 	"strings"
+
+	"github.com/andrii-stasiuk/go-exercises/client-server/client/printer"
+	"github.com/andrii-stasiuk/go-exercises/client-server/client/requests"
 )
 
 func main() {
