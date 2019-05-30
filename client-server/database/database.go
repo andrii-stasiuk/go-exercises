@@ -4,11 +4,13 @@ package database
 import (
 	"encoding/json"
 	"fmt"
-	"go-exercises/client-server/errors"
-	"go-exercises/client-server/synchro"
+
 	"io/ioutil"
 	"strconv"
 	"time"
+
+	"github.com/andrii-stasiuk/go-exercises/client-server/errors"
+	"github.com/andrii-stasiuk/go-exercises/client-server/synchro"
 )
 
 // User structure of the user data

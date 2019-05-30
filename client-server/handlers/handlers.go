@@ -3,12 +3,13 @@ package handlers
 
 import (
 	"encoding/json"
-	"go-exercises/client-server/database"
+
 	"io"
 	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/andrii-stasiuk/go-exercises/client-server/database"
 	"github.com/gorilla/mux"
 )
 

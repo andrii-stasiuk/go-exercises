@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go-exercises/client-server/database"
-	"go-exercises/client-server/handlers"
+
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/andrii-stasiuk/go-exercises/client-server/database"
+	"github.com/andrii-stasiuk/go-exercises/client-server/handlers"
 	"github.com/gorilla/mux"
 )
 
