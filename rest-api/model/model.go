@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"regexp"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 // store "context" values and connections in the server struct
@@ -23,28 +24,11 @@ type Todo struct {
 	Updated_at  string `json:"updated_at"`
 }
 
-func (s *Server) Homepage(res http.ResponseWriter, req *http.Request) {
-	// res.Header().Set("Content-Type", "application/json")
-	// res.WriteHeader(http.StatusOK)
-	// io.WriteString(res, `{"Alive": true}`)
-	comm := map[string]string{
-		"rsc": "werwer",
-		"r":   "werwer",
-	}
-	jsonResponse(res, comm)
-}
-
-// func (s *Server) Assets(res http.ResponseWriter, req *http.Request) {
-// 	http.ServeFile(res, req, req.URL.Path[1:])
-// }
-
-// Todo CRUD
-
-func (s *Server) TodoIndex(res http.ResponseWriter, req *http.Request) {
+func (s *Server) TodoIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var todos []*Todo
 
 	rows, err := s.Db.Query("SELECT id, name, description, state FROM todos")
-	errorCheck(res, err)
+	errorCheck(w, err)
 	for rows.Next() {
 		todo := &Todo{}
 		rows.Scan(&todo.Id, &todo.Name, &todo.Description, &todo.State)
@@ -52,21 +36,21 @@ func (s *Server) TodoIndex(res http.ResponseWriter, req *http.Request) {
 	}
 	rows.Close()
 
-	jsonResponse(res, todos)
+	jsonResponse(w, todos)
 }
 
-func (s *Server) TodoCreate(res http.ResponseWriter, req *http.Request) {
+func (s *Server) TodoCreate(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	todo := &Todo{}
 
-	decoder := json.NewDecoder(req.Body)
-	err := decoder.Decode(&todo)
+	err := r.ParseForm()
 	if err != nil {
-		fmt.Println("ERROR decoding JSON - ", err)
-		return
+		panic(err)
 	}
-	defer req.Body.Close()
 
-	result, err := s.Db.Exec("INSERT INTO todos(name, description, state) VALUES(?, ?, ?)", todo.Name, todo.Description, todo.State)
+	todo.Name = r.Form.Get("name")
+	todo.Description = r.Form.Get("description")
+
+	result, err := s.Db.Exec("INSERT INTO todos(name, description) VALUES(?, ?)", todo.Name, todo.Description)
 	if err != nil {
 		fmt.Println("ERROR saving to db - ", err)
 	}
@@ -77,43 +61,49 @@ func (s *Server) TodoCreate(res http.ResponseWriter, req *http.Request) {
 
 	s.Db.QueryRow("SELECT state, name, description FROM todos WHERE Id=?", todo.Id).Scan(&todo.State, &todo.Name, &todo.Description)
 
-	jsonResponse(res, todo)
+	jsonResponse(w, todo)
 }
 
-func (s *Server) TodoShow(res http.ResponseWriter, req *http.Request) {
-	fmt.Println("Render todo json")
-}
-
-func (s *Server) TodoUpdate(res http.ResponseWriter, req *http.Request) {
-	todoParams := &Todo{}
-
-	decoder := json.NewDecoder(req.Body)
-	err := decoder.Decode(&todoParams)
+func (s *Server) TodoShow(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	id := params.ByName("id")
+	todo := &Todo{}
+	err := s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id).Scan(&todo.Id, &todo.State, &todo.Name, &todo.Description, &todo.Created_at, &todo.Updated_at)
 	if err != nil {
-		fmt.Println("ERROR decoding JSON - ", err)
-		return
+		fmt.Println("ERROR reading from db - ", err)
 	}
+	jsonResponse(w, todo)
+}
 
-	_, err = s.Db.Exec("UPDATE todos SET name = ?, description = ?, state = ? WHERE id = ?", todoParams.Name, todoParams.Description, todoParams.State, todoParams.Id)
+func (s *Server) TodoUpdate(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	todo := &Todo{}
+
+	id := params.ByName("id")
+
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+	todo.Name = r.Form.Get("name")
+	todo.Description = r.Form.Get("description")
+
+	_, err = s.Db.Exec("UPDATE todos SET name = ?, description = ? WHERE id = ?", todo.Name, todo.Description, id)
 
 	if err != nil {
 		fmt.Println("ERROR saving to db - ", err)
 	}
 
-	todo := &Todo{Id: todoParams.Id}
-	err = s.Db.QueryRow("SELECT state, name, description FROM todos WHERE id=?", todo.Id).Scan(&todo.State, &todo.Name, &todo.Description)
+	err = s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id).Scan(&todo.Id, &todo.State, &todo.Name, &todo.Description, &todo.Created_at, &todo.Updated_at)
 	if err != nil {
 		fmt.Println("ERROR reading from db - ", err)
 	}
 
-	jsonResponse(res, todo)
+	jsonResponse(w, todo)
 }
 
-func (s *Server) TodoDelete(res http.ResponseWriter, req *http.Request) {
-	r, _ := regexp.Compile(`\d+$`)
-	id := r.FindString(req.URL.Path)
+func (s *Server) TodoDelete(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	id := params.ByName("id")
 	s.Db.Exec("DELETE FROM todos WHERE id=?", id)
-	res.WriteHeader(200)
+	w.WriteHeader(200)
 }
 
 func jsonResponse(res http.ResponseWriter, data interface{}) {

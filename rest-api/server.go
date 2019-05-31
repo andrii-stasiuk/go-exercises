@@ -3,16 +3,74 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"go-exercises/rest-api/handler"
 	"go-exercises/rest-api/model"
 	"log"
 	"net/http"
+	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/julienschmidt/httprouter"
+
+	//	_ "github.com/lib/pq"
+	_ "github.com/go-sql-driver/mysql"
 )
 
+// A Logger function which simply wraps the handler function around some log messages
+func Logger(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Params)) func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+		start := time.Now()
+		log.Printf("%s %s", r.Method, r.URL.Path)
+		fn(w, r, param)
+		log.Printf("Done in %v (%s %s)", time.Since(start), r.Method, r.URL.Path)
+	}
+}
+
+/*
+Define all the routes here.
+A new Route entry passed to the routes slice will be automatically
+translated to a handler with the NewRouter() function
+*/
+type Route struct {
+	Name        string
+	Method      string
+	Path        string
+	HandlerFunc httprouter.Handle
+}
+
+type Routes []Route
+
+func AllRoutes() Routes {
+	routes := Routes{
+		Route{"Index", "GET", "/", Index},
+		Route{"BookIndex", "GET", "/books", Index},
+		Route{"Bookshow", "GET", "/books/:isdn", Index},
+		Route{"Bookshow", "POST", "/books", Index},
+	}
+	return routes
+}
+
+//Reads from the routes slice to translate the values to httprouter.Handle
+func NewRouter(routes Routes) *httprouter.Router {
+
+	router := httprouter.New()
+	for _, route := range routes {
+		var handle httprouter.Handle
+
+		handle = route.HandlerFunc
+		handle = Logger(handle)
+
+		router.Handle(route.Method, route.Path, handle)
+	}
+
+	return router
+}
+
+func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprint(w, "Welcome!\n")
+}
+
 func main() {
-	db, err := sql.Open("postgres", "testuser:testpass@tcp(localhost:5555)/testdb?sslmode=disable")
+	//db, err := sql.Open("postgres", "testuser:testpass@tcp(localhost:5555)/testdb?sslmode=disable")
+	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/testdb")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -21,16 +79,17 @@ func main() {
 
 	server := &model.Server{Db: db}
 
-	reHandler := new(handler.RegexpHandler)
-
-	reHandler.HandleFunc("/api/todos/$", "POST", server.TodoCreate)
-	reHandler.HandleFunc("/api/todos/$", "GET", server.TodoIndex)
-	reHandler.HandleFunc("/api/todos/[0-9]+$", "GET", server.TodoShow)
-	reHandler.HandleFunc("/api/todos/[0-9]+$", "PATCH", server.TodoUpdate)
-	reHandler.HandleFunc("/api/todos/[0-9]+$", "DELETE", server.TodoDelete)
-	//reHandler.HandleFunc(".*.[js|css|png|eof|svg|ttf|woff]", "GET", server.Assets)
-	//reHandler.HandleFunc("/", "GET", server.Homepage)
+	router := httprouter.New()
+	router.GET("/", Index)
+	router.GET("/api/todos/", server.TodoIndex)
+	router.POST("/api/todos/", server.TodoCreate)
+	router.GET("/api/todos/:id/", server.TodoShow)
+	router.PATCH("/api/todos/:id/", server.TodoUpdate)
+	router.DELETE("/api/todos/:id/", server.TodoDelete)
 
 	fmt.Println("Starting server on port 8000")
-	http.ListenAndServe(":8000", reHandler)
+	log.Fatal(http.ListenAndServe(":8000", router))
+
+	// router := NewRouter(AllRoutes())
+	// log.Fatal(http.ListenAndServe(":8000", router))
 }
