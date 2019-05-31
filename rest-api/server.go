@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"go-exercises/rest-api/handler"
 	"go-exercises/rest-api/model"
 	"log"
 	"net/http"
@@ -77,19 +78,18 @@ func main() {
 	db.SetMaxIdleConns(100)
 	defer db.Close()
 
-	server := &model.Server{Db: db}
+	ml := model.Model{Db: db}
+	hl := handler.Handlers{Database: ml}
 
 	router := httprouter.New()
 	router.GET("/", Index)
-	router.GET("/api/todos/", server.TodoIndex)
-	router.POST("/api/todos/", server.TodoCreate)
-	router.GET("/api/todos/:id/", server.TodoShow)
-	router.PATCH("/api/todos/:id/", server.TodoUpdate)
-	router.DELETE("/api/todos/:id/", server.TodoDelete)
-
-	fmt.Println("Starting server on port 8000")
-	log.Fatal(http.ListenAndServe(":8000", router))
+	router.GET("/api/todos/", hl.TodoIndex)
+	router.POST("/api/todos/", hl.TodoCreate)
+	router.GET("/api/todos/:id/", hl.TodoShow)
+	router.PATCH("/api/todos/:id/", hl.TodoUpdate)
+	router.DELETE("/api/todos/:id/", hl.TodoDelete)
 
 	// router := NewRouter(AllRoutes())
-	// log.Fatal(http.ListenAndServe(":8000", router))
+	fmt.Println("Starting server on port 8000")
+	log.Fatal(http.ListenAndServe(":8000", router))
 }
