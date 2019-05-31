@@ -62,6 +62,7 @@ CREATE TABLE public.todos (
     id integer NOT NULL,
     name text NOT NULL,
     description text,
+    state integer,
     created_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
