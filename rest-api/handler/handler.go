@@ -16,6 +16,10 @@ type Handlers struct {
 	Database model.Model
 }
 
+func (s *Handlers) Default(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprint(w, "Welcome!\n")
+}
+
 func (s *Handlers) TodoIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	jsonResponse(w, s.Database.Index())
 }

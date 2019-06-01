@@ -3,7 +3,19 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 )
+
+// type Status struct {
+// 	Id     uint64
+// 	Status string
+// }
+
+var Statuses = map[uint64]string{
+	1: "created",
+	2: "in process",
+	3: "resolved",
+}
 
 // store "context" values and connections in the server struct
 type Model struct {
@@ -15,7 +27,7 @@ type Todo struct {
 	Id          int    `json:"id,sting"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	State       string `json:"State"`
+	State       string `json:"state"`
 	Created_at  string `json:"created_at"`
 	Updated_at  string `json:"updated_at"`
 }
@@ -43,6 +55,8 @@ func (s *Model) Show(id uint64) Todo {
 
 	todo := &Todo{}
 	err := s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id).Scan(&todo.Id, &todo.State, &todo.Name, &todo.Description, &todo.Created_at, &todo.Updated_at)
+	t, _ := strconv.ParseUint(todo.State, 10, 64)
+	todo.State = Statuses[t]
 	if err != nil {
 		fmt.Println("ERROR reading from db - ", err)
 	}
