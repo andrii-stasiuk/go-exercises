@@ -2,9 +2,7 @@ package router
 
 import (
 	"go-exercises/rest-api/handler"
-	"log"
-	"net/http"
-	"time"
+	"go-exercises/rest-api/logger"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -41,18 +39,8 @@ func NewRouter(routes Routes) *httprouter.Router {
 	for _, route := range routes {
 		var handle httprouter.Handle
 		handle = route.HandlerFunc
-		handle = Logger(handle)
+		handle = logger.Logger(handle)
 		router.Handle(route.Method, route.Path, handle)
 	}
 	return router
-}
-
-// A Logger function which simply wraps the handler function around some log messages
-func Logger(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Params)) func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-	return func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-		start := time.Now()
-		log.Printf("%s %s", r.Method, r.URL.Path)
-		fn(w, r, param)
-		log.Printf("Done in %v (%s %s)", time.Since(start), r.Method, r.URL.Path)
-	}
 }

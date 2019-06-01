@@ -2,8 +2,7 @@ package model
 
 import (
 	"database/sql"
-	"fmt"
-	"strconv"
+	"time"
 )
 
 // type Status struct {
@@ -11,6 +10,7 @@ import (
 // 	Status string
 // }
 
+// Statuses - a map to store the statuses with the ID as the key
 var Statuses = map[uint64]string{
 	1: "created",
 	2: "in process",
@@ -22,76 +22,83 @@ type Model struct {
 	Db *sql.DB
 }
 
-// todo "Object"
+// Todo main identifier
 type Todo struct {
-	Id          int    `json:"id,sting"`
+	ID          int    `json:"id,sting"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	State       string `json:"state"`
-	Created_at  string `json:"created_at"`
-	Updated_at  string `json:"updated_at"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 }
 
-func (s *Model) Index() []*Todo {
+// Index method
+func (s *Model) Index() ([]*Todo, error) {
 	var todos []*Todo
-
-	rows, _ /*err*/ := s.Db.Query("SELECT id, name, description, state FROM todos")
+	rows, err := s.Db.Query("SELECT id, name, description, state, created_at, updated_at FROM todos")
 	//errors.ErrorCheck(w, err)
+	if err != nil {
+		return []*Todo{}, err
+	}
 	for rows.Next() {
 		todo := &Todo{}
-		rows.Scan(&todo.Id, &todo.Name, &todo.Description, &todo.State)
+		err := rows.Scan(&todo.ID, &todo.Name, &todo.Description, &todo.State, &todo.CreatedAt, &todo.UpdatedAt)
+		if err != nil {
+			return []*Todo{}, err
+		}
 		todos = append(todos, todo)
 	}
-	rows.Close()
-	return todos
+	err = rows.Close()
+	if err != nil {
+		return []*Todo{}, err
+	}
+	return todos, nil
 }
 
-func (s *Model) Delete(id uint64) error {
+// Delete method
+func (s *Model) Delete(id string) error {
 	_, err := s.Db.Exec("DELETE FROM todos WHERE id=?", id)
+	// make check number of deleted rows and return err if no
 	return err
 }
 
-func (s *Model) Show(id uint64) Todo {
-
-	todo := &Todo{}
-	err := s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id).Scan(&todo.Id, &todo.State, &todo.Name, &todo.Description, &todo.Created_at, &todo.Updated_at)
-	t, _ := strconv.ParseUint(todo.State, 10, 64)
-	todo.State = Statuses[t]
-	if err != nil {
-		fmt.Println("ERROR reading from db - ", err)
-	}
-
-	return *todo
+// Show method
+func (s *Model) Show(id string) (Todo, error) {
+	todo := Todo{}
+	s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id).Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
+	// t, _ := strconv.ParseUint(todo.State, 10, 64)
+	// todo.State = Statuses[t]
+	return todo, nil
 }
 
-func (s *Model) Create(name, descr string) Todo {
-	todo := &Todo{}
-	todo.Name = name
-	todo.Description = descr
-
-	result, err := s.Db.Exec("INSERT INTO todos(name, description) VALUES(?, ?)", todo.Name, todo.Description)
+// Create method
+func (s *Model) Create(name, descr string, state string) (Todo, error) {
+	todo := Todo{Name: name, Description: descr, State: state}
+	result, err := s.Db.Exec("INSERT INTO todos(name, description, state, created_at, updated_at) VALUES(?, ?, ?, ?, ?)", todo.Name, todo.Description, todo.State, time.Now().Unix(), time.Now().Unix())
 	if err != nil {
-		fmt.Println("ERROR saving to db - ", err)
+		return Todo{}, err
 	}
-
 	id64, err := result.LastInsertId()
-	//print(id64)
-	s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id64).Scan(&todo.Id, &todo.State, &todo.Name, &todo.Description, &todo.Created_at, &todo.Updated_at)
-	return *todo
+	if err != nil {
+		return Todo{}, err
+	}
+	s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id64).Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
+	return todo, nil
 }
 
-func (s *Model) Update(id uint64, name, descr string) Todo {
-	todo := &Todo{}
-	/*result*/ _, err := s.Db.Exec("UPDATE todos SET name = ?, description = ? WHERE id = ?", name, descr, id)
+// Update method
+func (s *Model) Update(id string, name, descr string, state string) (Todo, error) {
+	todo := Todo{}
+	result, err := s.Db.Exec("UPDATE todos SET name = ?, description = ?, state = ?, updated_at = ? WHERE id = ?", name, descr, state, time.Now().Unix(), id)
 	if err != nil {
-		fmt.Println("ERROR saving to db - ", err)
+		return Todo{}, err
 	}
-	//id64, err := result.RowsAffected()
-	//print(id64)
-	err = s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id).Scan(&todo.Id, &todo.State, &todo.Name, &todo.Description, &todo.Created_at, &todo.Updated_at)
+	id64, err := result.RowsAffected()
 	if err != nil {
-		fmt.Println("ERROR reading from db - ", err)
+		return Todo{}, err
 	}
-	// make if name = todo.Name, ...
-	return *todo
+	if id64 > 0 {
+		s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id).Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
+	}
+	return todo, nil
 }
