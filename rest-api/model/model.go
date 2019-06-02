@@ -1,21 +1,10 @@
+/*Package model Todo*/
 package model
 
 import (
 	"database/sql"
 	"time"
 )
-
-// type Status struct {
-// 	Id     uint64
-// 	Status string
-// }
-
-// Statuses - a map to store the statuses with the ID as the key
-// var Statuses = map[uint64]string{
-// 	1: "created",
-// 	2: "in process",
-// 	3: "resolved",
-// }
 
 // Model store "context" values and connections in the server struct
 type Model struct {
@@ -32,10 +21,22 @@ type Todo struct {
 	UpdatedAt   string `json:"updated_at"`
 }
 
+//States - a map to store the states of Todo with the ID as the key
+var States = map[string]string{
+	"1": "created",
+	"2": "wait",
+	"3": "canceled",
+	"4": "blocked",
+	"5": "in process/doing",
+	"6": "review",
+	"7": "done",
+	"8": "archived",
+}
+
 // Index method
-func (s *Model) Index() ([]*Todo, error) {
+func (m *Model) Index() ([]*Todo, error) {
 	var todos []*Todo
-	rows, err := s.Db.Query("SELECT id, name, description, state, created_at, updated_at FROM todos")
+	rows, err := m.Db.Query("SELECT id, name, description, state, created_at, updated_at FROM todos")
 	if err != nil {
 		return []*Todo{}, err
 	}
@@ -45,6 +46,7 @@ func (s *Model) Index() ([]*Todo, error) {
 		if err != nil {
 			return []*Todo{}, err
 		}
+		todo.State = States[todo.State] // Shows the State in human-readable form
 		todos = append(todos, todo)
 	}
 	err = rows.Close()
@@ -55,16 +57,17 @@ func (s *Model) Index() ([]*Todo, error) {
 }
 
 // Show method
-func (s *Model) Show(id string) (Todo, error) {
+func (m *Model) Show(id string) (Todo, error) {
 	todo := Todo{}
-	row := s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id)
+	row := m.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id)
 	err := row.Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
+	todo.State = States[todo.State] // Shows the State in human-readable form
 	return todo, err
 }
 
 // Delete method
-func (s *Model) Delete(id string) (bool, error) {
-	result, err := s.Db.Exec("DELETE FROM todos WHERE id=?", id)
+func (m *Model) Delete(id string) (bool, error) {
+	result, err := m.Db.Exec("DELETE FROM todos WHERE id=?", id)
 	if err != nil {
 		return false, err
 	}
@@ -79,9 +82,9 @@ func (s *Model) Delete(id string) (bool, error) {
 }
 
 // Create method
-func (s *Model) Create(name, descr string, state string) (Todo, error) {
+func (m *Model) Create(name, descr string, state string) (Todo, error) {
 	todo := Todo{}
-	result, err := s.Db.Exec("INSERT INTO todos(name, description, state, created_at, updated_at) VALUES(?, ?, ?, ?, ?)", name, descr, state, time.Now().Unix(), time.Now().Unix())
+	result, err := m.Db.Exec("INSERT INTO todos(name, description, state, created_at, updated_at) VALUES(?, ?, ?, ?, ?)", name, descr, state, time.Now().Unix(), time.Now().Unix())
 	if err != nil {
 		return Todo{}, err
 	}
@@ -89,18 +92,19 @@ func (s *Model) Create(name, descr string, state string) (Todo, error) {
 	if err != nil {
 		return Todo{}, err
 	}
-	row := s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id64)
+	row := m.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id64)
 	err = row.Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
 	if err != nil {
 		return Todo{}, err
 	}
+	todo.State = States[todo.State] // Shows the State in human-readable form
 	return todo, nil
 }
 
 // Update method
-func (s *Model) Update(id string, name, descr string, state string) (Todo, error) {
+func (m *Model) Update(id string, name, descr string, state string) (Todo, error) {
 	todo := Todo{}
-	_, err := s.Db.Exec("UPDATE todos SET name = ?, description = ?, state = ?, updated_at = ? WHERE id = ?", name, descr, state, time.Now().Unix(), id)
+	_, err := m.Db.Exec("UPDATE todos SET name = ?, description = ?, state = ?, updated_at = ? WHERE id = ?", name, descr, state, time.Now().Unix(), id)
 	if err != nil {
 		return Todo{}, err
 	}
@@ -108,10 +112,11 @@ func (s *Model) Update(id string, name, descr string, state string) (Todo, error
 	// if err != nil {
 	// 	return Todo{}, err
 	// }
-	row := s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id)
+	row := m.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id)
 	err = row.Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
 	if err != nil {
 		return Todo{}, err
 	}
+	todo.State = States[todo.State] // Shows the State in human-readable form
 	return todo, nil
 }
