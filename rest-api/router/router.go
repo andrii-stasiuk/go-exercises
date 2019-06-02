@@ -1,9 +1,8 @@
 package router
 
 import (
-	"go-exercises/rest-api/handler"
-	"go-exercises/rest-api/logger"
-
+	"github.com/andrii-stasiuk/go-exercises/rest-api/handler"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/logger"
 	"github.com/julienschmidt/httprouter"
 )
 

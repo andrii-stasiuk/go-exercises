@@ -17,8 +17,8 @@ Głównym zadaniem jest stworzenie aplikacji z 5 endpointami API:
    - `POST /api/todos/` - tworzenie todo
    - `GET /api/todos/` - odczytywanie wszystkich todo
    - `GET /api/todos/:id/` - odczytywanie todo na podstawie ID
-   - `PATCH /api/todos/:id/` - aktualizacja todo
-   - `DELETE /api/todos/:id/` - usuwanie todo
+   - `PATCH /api/todos/:id/` - aktualizacja todo na podstawie ID
+   - `DELETE /api/todos/:id/` - usuwanie todo na podstawie ID
   
 Struktura aplikacji powinna być odpowiednio podzielona na `handlery`(zajmujące się otrzymywaniem i weryfikacją żądań) oraz `modele`(do wykonywania żądań).
 

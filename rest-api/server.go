@@ -4,12 +4,13 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	"go-exercises/rest-api/handler"
-	"go-exercises/rest-api/model"
-	"go-exercises/rest-api/router"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/andrii-stasiuk/go-exercises/rest-api/handler"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/model"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/router"
 
 	//	_ "github.com/lib/pq"
 	_ "github.com/go-sql-driver/mysql"

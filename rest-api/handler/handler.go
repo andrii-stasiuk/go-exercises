@@ -2,12 +2,13 @@ package handler
 
 import (
 	"encoding/json"
-	"go-exercises/rest-api/model"
-	"go-exercises/rest-api/responses"
+
 	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/andrii-stasiuk/go-exercises/rest-api/model"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/responses"
 	"github.com/julienschmidt/httprouter"
 )
 
