@@ -7,11 +7,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-/*
-Define all the routes here.
-A new Route entry passed to the routes slice will be automatically
-translated to a handler with the NewRouter() function
-*/
+// Route - A new Route entry passed to the routes slice will be automatically
+// translated to a handler with the NewRouter() function
 type Route struct {
 	Name        string
 	Method      string
@@ -19,8 +16,10 @@ type Route struct {
 	HandlerFunc httprouter.Handle
 }
 
+// Routes
 type Routes []Route
 
+// AllRoutes
 func AllRoutes(hl handler.Handlers) Routes {
 	routes := Routes{
 		Route{"Default", "GET", "/", hl.Default},
@@ -33,7 +32,7 @@ func AllRoutes(hl handler.Handlers) Routes {
 	return routes
 }
 
-//Reads from the routes slice to translate the values to httprouter.Handle
+// NewRouter - Reads from the routes slice to translate the values to httprouter.Handle
 func NewRouter(routes Routes) *httprouter.Router {
 	router := httprouter.New()
 	for _, route := range routes {

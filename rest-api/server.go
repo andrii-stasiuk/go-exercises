@@ -22,7 +22,7 @@ func main() {
 
 	fmt.Println("API server starting...")
 
-	//db, err := sql.Open("postgres", "testuser:testpass@tcp(localhost:5555)/testdb?sslmode=disable")
+	//dataBase, err := sql.Open("postgres", "testuser:testpass@tcp(localhost:5555)/testdb?sslmode=disable")
 	dataBase, err := sql.Open("mysql", *dbURLPtr)
 	if err != nil {
 		log.Fatal(err)
@@ -30,16 +30,11 @@ func main() {
 	dataBase.SetMaxIdleConns(100)
 	defer dataBase.Close()
 
-	ml := model.Model{Db: dataBase}
-	hl := handler.Handlers{SQL: ml}
-
-	// router := httprouter.New()
-	router := router.NewRouter(router.AllRoutes(hl))
+	router := router.NewRouter(router.AllRoutes(handler.Handlers{SQL: model.Model{Db: dataBase}}))
 
 	srv := &http.Server{
-		Handler: router,
-		Addr:    *addrPtr,
-		// Enforce timeouts for created servers
+		Handler:      router,
+		Addr:         *addrPtr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}

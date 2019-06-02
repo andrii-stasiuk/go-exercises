@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"go-exercises/rest-api/errors"
 	"go-exercises/rest-api/model"
+	"go-exercises/rest-api/responses"
 	"log"
 	"net/http"
 
@@ -19,16 +19,16 @@ func (h *Handlers) Default(w http.ResponseWriter, r *http.Request, _ httprouter.
 	// w.Header().Set("Content-Type", "text/html")
 	// w.WriteHeader(http.StatusOK)
 	// fmt.Fprint(w, "Welcome!\n")
-	errors.WriteOKResponse(w, "Welcome to API server!")
+	responses.WriteOKResponse(w, "Welcome to API server!")
 }
 
 // TodoIndex - handler for the Todo Index action
 func (h *Handlers) TodoIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if res, err := h.SQL.Index(); err != nil {
 		log.Println(err)
-		errors.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
+		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
 	} else {
-		errors.WriteOKResponse(w, res)
+		responses.WriteOKResponse(w, res)
 	}
 }
 
@@ -36,14 +36,14 @@ func (h *Handlers) TodoIndex(w http.ResponseWriter, r *http.Request, _ httproute
 func (h *Handlers) TodoCreate(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
-		errors.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
+		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
 	} else {
 		res, err := h.SQL.Create(r.Form.Get("name"), r.Form.Get("description"), r.Form.Get("state"))
 		if err != nil {
 			log.Println(err)
-			errors.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
+			responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
 		} else {
-			errors.WriteOKResponse(w, res)
+			responses.WriteOKResponse(w, res)
 		}
 	}
 }
@@ -53,9 +53,9 @@ func (h *Handlers) TodoShow(w http.ResponseWriter, r *http.Request, params httpr
 	res, err := h.SQL.Show(params.ByName("id"))
 	if err != nil {
 		log.Println(err)
-		errors.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
+		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
 	} else {
-		errors.WriteOKResponse(w, res)
+		responses.WriteOKResponse(w, res)
 	}
 }
 
@@ -63,27 +63,27 @@ func (h *Handlers) TodoShow(w http.ResponseWriter, r *http.Request, params httpr
 func (h *Handlers) TodoUpdate(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
-		errors.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
+		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
 	} else {
 		res, err := h.SQL.Update(params.ByName("id"), r.Form.Get("name"), r.Form.Get("description"), r.Form.Get("state"))
 		if err != nil {
 			log.Println(err)
-			errors.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
+			responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
 		} else {
-			errors.WriteOKResponse(w, res)
+			responses.WriteOKResponse(w, res)
 		}
 	}
-	// jsonResponse(w, h.SQL.Update(t, r.Form.Get("name"), r.Form.Get("description")))
 }
 
 // TodoDelete - handler for the Todo Delete action
 func (h *Handlers) TodoDelete(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	err := h.SQL.Delete(params.ByName("id"))
+	deleted, err := h.SQL.Delete(params.ByName("id"))
 	if err != nil {
 		log.Println(err)
-		errors.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
+		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
+	} else if deleted == true {
+		responses.WriteOKResponse(w, http.StatusOK)
 	} else {
-		errors.WriteOKResponse(w, http.StatusOK)
+		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
 	}
-	//w.WriteHeader(200)
 }

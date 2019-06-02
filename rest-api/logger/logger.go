@@ -8,7 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// A Logger function which simply wraps the handler function around some log messages
+// Logger function which simply wraps the handler function around some log messages
 func Logger(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Params)) func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 		start := time.Now()
