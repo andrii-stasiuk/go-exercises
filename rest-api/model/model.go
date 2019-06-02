@@ -54,6 +54,14 @@ func (s *Model) Index() ([]*Todo, error) {
 	return todos, nil
 }
 
+// Show method
+func (s *Model) Show(id string) (Todo, error) {
+	todo := Todo{}
+	row := s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id)
+	err := row.Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
+	return todo, err
+}
+
 // Delete method
 func (s *Model) Delete(id string) (bool, error) {
 	result, err := s.Db.Exec("DELETE FROM todos WHERE id=?", id)
@@ -68,14 +76,6 @@ func (s *Model) Delete(id string) (bool, error) {
 		return true, nil
 	}
 	return false, err
-}
-
-// Show method
-func (s *Model) Show(id string) (Todo, error) {
-	todo := Todo{}
-	row := s.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id)
-	err := row.Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
-	return todo, err
 }
 
 // Create method
