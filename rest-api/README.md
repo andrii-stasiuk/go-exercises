@@ -37,4 +37,4 @@ będzie baza danych.
   - [Przykładowa aplikacja z todos](https://github.com/westonplatter/example-golang-todo) - nie wzorować się za mocno, jest słabo napisana i ma służyć tylko jako pomoc
   - [Obiekt sql.DB](https://golang.org/pkg/database/sql/#DB)
   - [Tutorial komunikacji Go z PostgreSQL](https://flaviocopes.com/golang-sql-database/)
-  - [Tutorial REST API w Go](https://www.codementor.io/codehakase/building-a-restful-api-with-golang-a6yivzqdo)
+  - [Tutorial REST API w Go](http://web.archive.org/web/20190305103238/https://www.codementor.io/codehakase/building-a-restful-api-with-golang-a6yivzqdo)
