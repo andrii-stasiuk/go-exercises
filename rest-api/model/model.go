@@ -124,6 +124,15 @@ func (m *Model) Update(id string, todo *Todo) (*Todo, error) {
 	return todo, nil
 }
 
+// DatabaseConnect func creates and returnes new db (reserved for future purposes - to use with connection parameters)
+func DatabaseConnect(driverName, dataSourceName string) (*sql.DB, error) {
+	db, err := sql.Open(driverName, dataSourceName)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
 // GetVersion method gets and returns SQL Server version
 func (m *Model) GetVersion() (string, error) {
 	// Use background context

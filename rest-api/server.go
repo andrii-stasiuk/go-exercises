@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -56,7 +55,7 @@ func main() {
 	fmt.Println("Server is starting...")
 
 	//dataBase, err := sql.Open("postgres", "testuser:testpass@tcp(localhost:5555)/testdb?sslmode=disable")
-	dataBase, err := sql.Open("mysql", *dbURLPtr)
+	dataBase, err := model.DatabaseConnect("mysql", *dbURLPtr)
 	if err != nil {
 		log.Fatal(err)
 	}
