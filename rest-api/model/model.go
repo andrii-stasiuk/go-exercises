@@ -2,6 +2,7 @@
 package model
 
 import (
+	"context"
 	"database/sql"
 	"time"
 )
@@ -121,4 +122,25 @@ func (m *Model) Update(id string, todo *Todo) (*Todo, error) {
 	}
 	todo.State = States[todo.State] // Shows the State in human-readable form
 	return todo, nil
+}
+
+// GetVersion method gets and returns SQL Server version
+func (m *Model) GetVersion() (string, error) {
+	// Use background context
+	ctx := context.Background()
+
+	// Ping database to see if it's still alive.
+	// Important for handling network issues and long queries.
+	err := m.Db.PingContext(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	var result string
+	// Run query and scan for result
+	err = m.Db.QueryRowContext(ctx, "SELECT @@version").Scan(&result)
+	if err != nil {
+		return "", err
+	}
+	return result, nil
 }

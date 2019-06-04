@@ -35,7 +35,14 @@ func main() {
 	dataBase.SetMaxIdleConns(100)
 	defer dataBase.Close()
 
-	router := router.NewRouter(router.AllRoutes(handler.Handlers{SQL: model.Model{Db: dataBase}}))
+	sql := model.Model{Db: dataBase}
+	sqlVersion, err := sql.GetVersion()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("SQL Server version: %s\n", sqlVersion)
+
+	router := router.NewRouter(router.AllRoutes(handler.Handlers{SQL: sql}))
 
 	srv := &http.Server{
 		Handler:      router,
