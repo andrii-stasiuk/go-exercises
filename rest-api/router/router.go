@@ -2,7 +2,6 @@
 package router
 
 import (
-	"github.com/andrii-stasiuk/go-exercises/rest-api/handler"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/logger"
 	"github.com/julienschmidt/httprouter"
 )
@@ -16,21 +15,8 @@ type Route struct {
 	HandlerFunc httprouter.Handle
 }
 
-// Routes
+// Routes slice
 type Routes []Route
-
-// AllRoutes
-func AllRoutes(hl handler.Handlers) Routes {
-	routes := Routes{
-		Route{"Default", "GET", "/", hl.Default},
-		Route{"TodoIndex", "GET", "/api/todos/", hl.TodoIndex},
-		Route{"TodoShow", "GET", "/api/todos/:id/", hl.TodoShow},
-		Route{"TodoDelete", "DELETE", "/api/todos/:id/", hl.TodoDelete},
-		Route{"TodoCreate", "POST", "/api/todos/", hl.TodoCreate},
-		Route{"TodoUpdate", "PATCH", "/api/todos/:id/", hl.TodoUpdate},
-	}
-	return routes
-}
 
 // NewRouter - Reads from the routes slice to translate the values to httprouter.Handle
 func NewRouter(routes Routes) *httprouter.Router {
