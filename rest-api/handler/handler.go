@@ -13,9 +13,23 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Handlers structure
+type modelInterface interface {
+	Index() ([]*model.Todo, error)
+	Show(id string) (*model.Todo, error)
+	Delete(id string) (bool, error)
+	Create(todo *model.Todo) (*model.Todo, error)
+	Update(id string, todo *model.Todo) (*model.Todo, error)
+	GetVersion() (string, error)
+}
+
+// Handlers structure for handling requests
 type Handlers struct {
-	SQL model.Model
+	SQL modelInterface
+}
+
+// New is a constructor of "Handlers", it gets "Model" type Model as an argument and returns "Handlers" type Handlers
+func New(mi modelInterface) Handlers {
+	return Handlers{SQL: mi}
 }
 
 // Default - handler for the root page

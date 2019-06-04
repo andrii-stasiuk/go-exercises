@@ -32,14 +32,14 @@ func main() {
 	dataBase.SetMaxIdleConns(100)
 	defer dataBase.Close()
 
-	sql := model.Model{Db: dataBase}
+	sql := model.New(dataBase)
 	sqlVersion, err := sql.GetVersion()
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("SQL Server version: %s\n", sqlVersion)
 
-	srv := core.NewServer(addrPtr, router.NewRouter(router.AllRoutes(handler.Handlers{SQL: sql})))
+	srv := core.NewServer(addrPtr, router.NewRouter(router.AllRoutes(handler.New(&sql))))
 
 	done := make(chan struct{}, 1)
 	// Setting up signal capturing

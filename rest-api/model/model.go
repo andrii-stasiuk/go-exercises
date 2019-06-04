@@ -133,6 +133,11 @@ func DatabaseConnect(driverName, dataSourceName string) (*sql.DB, error) {
 	return db, nil
 }
 
+// New gets the address of the database as parameter and returns new Model struct
+func New(db *sql.DB) Model {
+	return Model{Db: db}
+}
+
 // GetVersion method gets and returns SQL Server version
 func (m *Model) GetVersion() (string, error) {
 	// Use background context
