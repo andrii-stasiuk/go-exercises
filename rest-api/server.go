@@ -12,18 +12,16 @@ import (
 	"github.com/andrii-stasiuk/go-exercises/rest-api/model"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/router"
 	_ "github.com/lib/pq"
-	//_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	//var dbURLPtr = flag.String("db", "root:@tcp(127.0.0.1:3306)/testdb", "Specify the URL to the database")
-	var dbURLPtr = flag.String("db", "postgres://testuser:testpass@localhost:5555/testdb?sslmode=disable", "Specify the URL to the database")
+	var dbURLPtr = flag.String("db", "postgres://testuser:testpass@localhost:5555/testdb?sslmode=disable", "Specify the URL to the database") // work DB
+	// var dbURLPtr = flag.String("db", "postgres://postgres:@localhost:5432/postgres?sslmode=disable", "Specify the URL to the database") // home DB
 	var addrPtr = flag.String("addr", "127.0.0.1:8000", "Server IPv4 address")
 	flag.Parse()
 
 	fmt.Println("Server is starting...")
 
-	//dataBase, err := model.DatabaseConnect("mysql", *dbURLPtr)
 	dataBase, err := core.DatabaseConnect("postgres", *dbURLPtr)
 	if err != nil {
 		log.Fatal(err)
@@ -33,6 +31,7 @@ func main() {
 
 	sql := model.New(dataBase)
 	sqlVersion, err := core.DatabaseVersion(dataBase)
+	// Checks the operation of the database server and returns it version number
 	if err != nil {
 		log.Fatal(err)
 	}

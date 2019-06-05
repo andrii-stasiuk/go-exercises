@@ -1,4 +1,4 @@
-/*Package responses*/
+/*Package responses (json content)*/
 package responses
 
 import (

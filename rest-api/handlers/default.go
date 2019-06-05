@@ -1,3 +1,4 @@
+/*Package handlers Todo*/
 package handlers
 
 import (
@@ -7,7 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Default - handler for the root page
+// Default - handler for the root page /
 func (h Handlers) Default(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	responses.WriteOKResponse(w, "Welcome to API server!")
 }

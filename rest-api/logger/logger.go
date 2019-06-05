@@ -1,4 +1,4 @@
-/*Package logger*/
+/*Package logger to log useful work information*/
 package logger
 
 import (

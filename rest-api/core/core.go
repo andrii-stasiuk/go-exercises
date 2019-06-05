@@ -1,4 +1,4 @@
-/*Package core*/
+/*Package core to support the main application*/
 package core
 
 import (
@@ -22,7 +22,27 @@ func DatabaseConnect(driverName, dataSourceName string) (*sql.DB, error) {
 	return db, nil
 }
 
-// NewServer - creates and returns Server
+// DatabaseVersion function that checks the operation of the database server and returns it version number
+func DatabaseVersion(db *sql.DB) (string, error) {
+	// Use background context
+	ctx := context.Background()
+
+	// Ping database to see if it's still alive. Important for handling network issues and long queries.
+	err := db.PingContext(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	var result string
+	// Run query and scan for result with version number of PostgreSQL
+	err = db.QueryRowContext(ctx, "SELECT version();").Scan(&result)
+	if err != nil {
+		return "", err
+	}
+	return result, nil
+}
+
+// NewServer function that creates and returns http.Server
 func NewServer(listenAddr *string, router *httprouter.Router) *http.Server {
 	return &http.Server{
 		Addr:         *listenAddr,
@@ -33,7 +53,7 @@ func NewServer(listenAddr *string, router *httprouter.Router) *http.Server {
 	}
 }
 
-// StartServer - starts listen on Server
+// StartServer function that starts listen on server:port
 func StartServer(listenAddr *string, server *http.Server) {
 	fmt.Println("Server is ready to handle requests at", *listenAddr)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -41,7 +61,7 @@ func StartServer(listenAddr *string, server *http.Server) {
 	}
 }
 
-// ShutdownServer - gracefull shutdown of the server
+// ShutdownServer function that gracefully shutdown http.Server
 func ShutdownServer(server *http.Server, quit <-chan os.Signal, done chan<- struct{}) {
 	// Waiting for SIGINT (pkill -2)
 	<-quit
@@ -56,25 +76,4 @@ func ShutdownServer(server *http.Server, quit <-chan os.Signal, done chan<- stru
 		log.Fatalf("Could not gracefully shutdown the server: %v\n", err)
 	}
 	close(done)
-}
-
-// DatabaseVersion method gets and returns SQL Server version
-func DatabaseVersion(db *sql.DB) (string, error) {
-	// Use background context
-	ctx := context.Background()
-
-	// Ping database to see if it's still alive.
-	// Important for handling network issues and long queries.
-	err := db.PingContext(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	var result string
-	// Run query and scan for result
-	err = db.QueryRowContext(ctx, "SELECT version();").Scan(&result)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
 }

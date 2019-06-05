@@ -1,9 +1,9 @@
-/*Package router*/
+/*Package router (all routes)*/
 package router
 
 import "github.com/andrii-stasiuk/go-exercises/rest-api/handlers"
 
-// AllRoutes
+// AllRoutes is here
 func AllRoutes(hl handlers.Handlers) Routes {
 	routes := Routes{
 		Route{"GET", "/", hl.Default},

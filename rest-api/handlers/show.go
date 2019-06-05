@@ -1,3 +1,4 @@
+/*Package handlers Todo*/
 package handlers
 
 import (
@@ -8,7 +9,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// TodoShow - handler for the Todo Show action
+// TodoShow - handler for the Todo Show action, also validates the "id" field
 func (h Handlers) TodoShow(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	if !CheckInt(params.ByName("id")) {
 		log.Println("Incorrect ID")

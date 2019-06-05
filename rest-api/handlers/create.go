@@ -1,3 +1,4 @@
+/*Package handlers Todo*/
 package handlers
 
 import (
@@ -10,14 +11,14 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// TodoCreate - handler for the Todo Create action
+// TodoCreate - handler for the Todo Create action, also validates the data received from the client
 func (h Handlers) TodoCreate(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	todo := model.Todo{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&todo)
 	if err != nil {
 		log.Println(err)
-		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")
+		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unable to decode JSON")
 		return
 	}
 	if !CheckStr(todo.Name) || !CheckStr(todo.Description) || !CheckInt(todo.State) {
