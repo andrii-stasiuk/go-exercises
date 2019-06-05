@@ -103,7 +103,7 @@ ALTER TABLE ONLY public.todos ALTER COLUMN id SET DEFAULT nextval('public.todos_
 -- Data for Name: todos; Type: TABLE DATA; Schema: public; Owner: testuser
 --
 
-COPY public.todos (id, name, description, created_at, updated_at) FROM stdin;
+COPY public.todos (id, name, description, state, created_at, updated_at) FROM stdin;
 \.
 
 

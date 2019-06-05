@@ -1,5 +1,5 @@
 /*Package handler Todo*/
-package handler
+package handlers
 
 import (
 	"github.com/andrii-stasiuk/go-exercises/rest-api/model"
@@ -8,10 +8,9 @@ import (
 type modelInterface interface {
 	Index() ([]*model.Todo, error)
 	Show(id string) (*model.Todo, error)
-	Delete(id string) (bool, error)
+	Delete(id string) (*model.Todo, error)
 	Create(todo *model.Todo) (*model.Todo, error)
 	Update(id string, todo *model.Todo) (*model.Todo, error)
-	GetVersion() (string, error)
 }
 
 // Handlers structure for handling requests

@@ -2,13 +2,11 @@
 package model
 
 import (
-	"context"
 	"database/sql"
-	"time"
 )
 
-// Model store "context" values and connections in the server struct
-type Model struct {
+// Todos model store "context" values and connections in the server struct
+type Todos struct {
 	Db *sql.DB
 }
 
@@ -23,6 +21,7 @@ type Todo struct {
 }
 
 //States - a map to store the states of Todo with the ID as the key
+//In the future it can be stored in other related table
 var States = map[string]string{
 	"1": "created",
 	"2": "wait",
@@ -34,10 +33,15 @@ var States = map[string]string{
 	"8": "archived",
 }
 
+// New gets the address of the database as parameter and returns new Model struct
+func New(db *sql.DB) Todos {
+	return Todos{Db: db}
+}
+
 // Index method
-func (m *Model) Index() ([]*Todo, error) {
+func (m Todos) Index() ([]*Todo, error) {
 	var todos []*Todo
-	rows, err := m.Db.Query("SELECT id, name, description, state, created_at, updated_at FROM todos")
+	rows, err := m.Db.Query("SELECT id, name, description, state, created_at, updated_at FROM todos ORDER BY id")
 	if err != nil {
 		return []*Todo{}, err
 	}
@@ -47,7 +51,7 @@ func (m *Model) Index() ([]*Todo, error) {
 		if err != nil {
 			return []*Todo{}, err
 		}
-		todo.State = States[todo.State] // Shows the State in human-readable form
+		todo.State = States[todo.State] // Shows the State in human-readable form (for development purposes only)
 		todos = append(todos, todo)
 	}
 	err = rows.Close()
@@ -58,103 +62,38 @@ func (m *Model) Index() ([]*Todo, error) {
 }
 
 // Show method
-func (m *Model) Show(id string) (*Todo, error) {
+func (m Todos) Show(id string) (*Todo, error) {
 	var todo Todo
-	row := m.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id)
+	row := m.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=$1", id)
 	err := row.Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
 	if err != nil {
 		return &Todo{}, err
 	}
-	todo.State = States[todo.State] // Shows the State in human-readable form
+	todo.State = States[todo.State] // Shows the State in human-readable form (for development purposes only)
 	return &todo, err
 }
 
 // Delete method
-func (m *Model) Delete(id string) (bool, error) {
-	result, err := m.Db.Exec("DELETE FROM todos WHERE id=?", id)
-	if err != nil {
-		return false, err
-	}
-	id64, err := result.RowsAffected()
-	if err != nil {
-		return false, err
-	}
-	if id64 > 0 {
-		return true, nil
-	}
-	return false, err
+func (m Todos) Delete(id string) (*Todo, error) {
+	var todo Todo
+	sqlStatement := `DELETE FROM todos WHERE id=$1 RETURNING id, state, name, description, created_at, updated_at`
+	err := m.Db.QueryRow(sqlStatement, id).Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
+	todo.State = States[todo.State] // Shows the State in human-readable form (for development purposes only)
+	return &todo, err
 }
 
 // Create method
-func (m *Model) Create(todo *Todo) (*Todo, error) {
-	result, err := m.Db.Exec("INSERT INTO todos(name, description, state, created_at, updated_at) VALUES(?, ?, ?, ?, ?)", todo.Name, todo.Description, todo.State, time.Now().Unix(), time.Now().Unix())
-	if err != nil {
-		return &Todo{}, err
-	}
-	id64, err := result.LastInsertId()
-	if err != nil {
-		return &Todo{}, err
-	}
-	row := m.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id64)
-	err = row.Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
-	if err != nil {
-		return &Todo{}, err
-	}
-	todo.State = States[todo.State] // Shows the State in human-readable form
-	return todo, nil
+func (m Todos) Create(todo *Todo) (*Todo, error) {
+	sqlStatement := "INSERT INTO todos (name, description, state) VALUES($1, $2, $3) RETURNING id, created_at, updated_at"
+	err := m.Db.QueryRow(sqlStatement, todo.Name, todo.Description, todo.State).Scan(&todo.ID, &todo.CreatedAt, &todo.UpdatedAt)
+	todo.State = States[todo.State] // Shows the State in human-readable form (for development purposes only)
+	return todo, err
 }
 
 // Update method
-func (m *Model) Update(id string, todo *Todo) (*Todo, error) {
-	//todo := Todo{}
-	_, err := m.Db.Exec("UPDATE todos SET name = ?, description = ?, state = ?, updated_at = ? WHERE id = ?", todo.Name, todo.Description, todo.State, time.Now().Unix(), id)
-	if err != nil {
-		return &Todo{}, err
-	}
-	// id64, err := result.RowsAffected()
-	// if err != nil {
-	// 	return Todo{}, err
-	// }
-	row := m.Db.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=?", id)
-	err = row.Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
-	if err != nil {
-		return &Todo{}, err
-	}
-	todo.State = States[todo.State] // Shows the State in human-readable form
-	return todo, nil
-}
-
-// DatabaseConnect func creates and returnes new db (reserved for future purposes - to use with connection parameters)
-func DatabaseConnect(driverName, dataSourceName string) (*sql.DB, error) {
-	db, err := sql.Open(driverName, dataSourceName)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
-
-// New gets the address of the database as parameter and returns new Model struct
-func New(db *sql.DB) Model {
-	return Model{Db: db}
-}
-
-// GetVersion method gets and returns SQL Server version
-func (m *Model) GetVersion() (string, error) {
-	// Use background context
-	ctx := context.Background()
-
-	// Ping database to see if it's still alive.
-	// Important for handling network issues and long queries.
-	err := m.Db.PingContext(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	var result string
-	// Run query and scan for result
-	err = m.Db.QueryRowContext(ctx, "SELECT @@version").Scan(&result)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
+func (m Todos) Update(id string, todo *Todo) (*Todo, error) {
+	sqlStatement := "UPDATE todos SET name = $1, description = $2, state = $3, updated_at = now() WHERE id=$4 RETURNING id, created_at, updated_at"
+	err := m.Db.QueryRow(sqlStatement, todo.Name, todo.Description, todo.State, id).Scan(&todo.ID, &todo.CreatedAt, &todo.UpdatedAt)
+	todo.State = States[todo.State] // Shows the State in human-readable form (for development purposes only)
+	return todo, err
 }

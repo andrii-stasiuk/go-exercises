@@ -1,4 +1,4 @@
-package handler
+package handlers
 
 import (
 	"net/http"
@@ -8,6 +8,6 @@ import (
 )
 
 // Default - handler for the root page
-func (h *Handlers) Default(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (h Handlers) Default(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	responses.WriteOKResponse(w, "Welcome to API server!")
 }
