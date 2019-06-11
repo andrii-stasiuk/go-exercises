@@ -33,13 +33,12 @@ func (u Users) Register(user *User) (*User, error) {
 }
 
 //
-func (u Users) Login(user *User) bool {
+func (u Users) Login(user *User) (*User, bool) {
 	pass := user.Password
-	row := u.Db.QueryRow("SELECT id, email, password, created_at FROM users WHERE email=$1", user.Email)
-	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
-	if err != nil {
-		return false
+	sqlStatement := "SELECT id, email, password, created_at FROM users WHERE email=$1"
+	err := u.Db.QueryRow(sqlStatement, user.Email).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
+	if err == nil && core.CheckPasswordHash(pass, user.Password) {
+		return user, true
 	}
-	return core.CheckPasswordHash(pass, user.Password)
-	//hash https://gowebexamples.com/password-hashing
+	return &User{}, false
 }

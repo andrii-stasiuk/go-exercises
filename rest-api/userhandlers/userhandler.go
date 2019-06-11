@@ -7,7 +7,7 @@ import (
 
 type userInterface interface {
 	Register(user *usermodel.User) (*usermodel.User, error)
-	Login(user *usermodel.User) bool
+	Login(user *usermodel.User) (*usermodel.User, bool)
 }
 
 // Handlers structure for handling requests
