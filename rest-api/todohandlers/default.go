@@ -1,5 +1,5 @@
 /*Package handlers Todo*/
-package handlers
+package todohandlers
 
 import (
 	"net/http"
@@ -9,6 +9,6 @@ import (
 )
 
 // Default - handler for the root page /
-func (h Handlers) Default(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (h TodoHandlers) Default(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	responses.WriteOKResponse(w, "Welcome to API server!")
 }

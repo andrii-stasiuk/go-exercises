@@ -1,5 +1,5 @@
 /*Package model Todo*/
-package model
+package todomodel
 
 import (
 	"database/sql"
