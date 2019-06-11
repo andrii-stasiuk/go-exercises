@@ -11,6 +11,8 @@ import (
 	"github.com/andrii-stasiuk/go-exercises/rest-api/handlers"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/model"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/router"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/userhandler"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/usermodel"
 	_ "github.com/lib/pq"
 )
 
@@ -29,7 +31,8 @@ func main() {
 	dataBase.SetMaxIdleConns(100)
 	defer dataBase.Close()
 
-	sql := model.New(dataBase)
+	todoModel := model.New(dataBase)
+	userModel := usermodel.New(dataBase)
 	sqlVersion, err := core.DatabaseVersion(dataBase)
 	// Checks the operation of the database server and returns it version number
 	if err != nil {
@@ -37,7 +40,7 @@ func main() {
 	}
 	fmt.Printf("SQL Server version: %s\n", sqlVersion)
 
-	srv := core.NewServer(addrPtr, router.NewRouter(router.AllRoutes(handlers.New(&sql))))
+	srv := core.NewServer(addrPtr, router.NewRouter(router.AllRoutes(handlers.New(&todoModel), userhandler.New(&userModel))))
 
 	done := make(chan struct{}, 1)
 	// Setting up signal capturing

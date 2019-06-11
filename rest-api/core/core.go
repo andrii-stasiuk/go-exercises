@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // DatabaseConnect func creates and returnes new db (reserved for future purposes - to use with connection parameters)
@@ -76,4 +77,16 @@ func ShutdownServer(server *http.Server, quit <-chan os.Signal, done chan<- stru
 		log.Fatalf("Could not gracefully shutdown the server: %v\n", err)
 	}
 	close(done)
+}
+
+// HashPassword - hash passwords using bcrypt
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+// CheckPasswordHash - check password hash using bcrypt
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }

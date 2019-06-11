@@ -55,10 +55,7 @@ func (m Todos) Index() ([]*Todo, error) {
 		todos = append(todos, todo)
 	}
 	err = rows.Close()
-	if err != nil {
-		return []*Todo{}, err
-	}
-	return todos, nil
+	return todos, err
 }
 
 // Show method to get a specific record from a table
