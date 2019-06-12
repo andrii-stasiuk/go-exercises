@@ -17,8 +17,7 @@ import (
 )
 
 func main() {
-	var dbURLPtr = flag.String("db", "postgres://testuser:testpass@localhost:5555/testdb?sslmode=disable", "Specify the URL to the database") // work DB
-	// var dbURLPtr = flag.String("db", "postgres://postgres:@localhost:5432/postgres?sslmode=disable", "Specify the URL to the database") // home DB
+	var dbURLPtr = flag.String("db", "postgres://testuser:testpass@localhost:5555/testdb?sslmode=disable", "Specify the URL to the database")
 	var addrPtr = flag.String("addr", "127.0.0.1:8000", "Server IPv4 address")
 	flag.Parse()
 
@@ -40,7 +39,8 @@ func main() {
 	}
 	fmt.Printf("SQL Server version: %s\n", sqlVersion)
 
-	srv := core.NewServer(addrPtr, router.NewRouter(router.AllRoutes(todo.New(&todoModel), user.New(&userModel))))
+	newRouer := router.NewRouter(router.AllRoutes(todo.New(&todoModel), user.New(&userModel)))
+	srv := core.NewServer(addrPtr, newRouer)
 
 	done := make(chan struct{}, 1)
 	// Setting up signal capturing
