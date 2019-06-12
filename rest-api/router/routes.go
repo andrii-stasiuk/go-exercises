@@ -2,12 +2,12 @@
 package router
 
 import (
-	"github.com/andrii-stasiuk/go-exercises/rest-api/todohandlers"
-	"github.com/andrii-stasiuk/go-exercises/rest-api/userhandlers"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/handlers/todo"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/handlers/user"
 )
 
 // AllRoutes is here
-func AllRoutes(hl todohandlers.TodoHandlers, us userhandlers.UserHandlers) Routes {
+func AllRoutes(hl todo.TodoHandlers, us user.UserHandlers) Routes {
 	routes := Routes{
 		// Routes for Todos
 		Route{"GET", "/", hl.Default},
@@ -17,8 +17,8 @@ func AllRoutes(hl todohandlers.TodoHandlers, us userhandlers.UserHandlers) Route
 		Route{"POST", "/api/todos/", hl.TodoCreate},
 		Route{"PATCH", "/api/todos/:id/", hl.TodoUpdate},
 		// Routes for Users
-		Route{"POST", "/api/user/register/", us.UserRegister},
-		Route{"POST", "/api/user/login/", us.UserLogin},
+		Route{"POST", "/api/users/", us.UserRegister},
+		Route{"POST", "/api/users/login/", us.UserLogin},
 	}
 	return routes
 }

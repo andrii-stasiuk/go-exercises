@@ -104,7 +104,7 @@ func HashPassword(password string) (string, error) {
 }
 
 // CheckPasswordHash - check password hash using bcrypt
-func CheckPasswordHash(password, hash string) bool {
+func CheckPasswordHash(password, hash string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
+	return err
 }

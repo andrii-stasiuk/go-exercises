@@ -1,8 +1,8 @@
 /*Package handlers Todo*/
-package todohandlers
+package todo
 
 import (
-	"github.com/andrii-stasiuk/go-exercises/rest-api/todomodel"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/models/todomodel"
 )
 
 type todoInterface interface {

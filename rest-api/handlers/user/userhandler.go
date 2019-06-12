@@ -1,13 +1,13 @@
 /*Package userhandler*/
-package userhandlers
+package user
 
 import (
-	"github.com/andrii-stasiuk/go-exercises/rest-api/usermodel"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/models/usermodel"
 )
 
 type userInterface interface {
-	Register(user *usermodel.User) (*usermodel.User, error)
-	Login(user *usermodel.User) (*usermodel.User, bool)
+	Register(user usermodel.User) (usermodel.User, error)
+	Login(user usermodel.User) (usermodel.User, bool)
 }
 
 // Handlers structure for handling requests

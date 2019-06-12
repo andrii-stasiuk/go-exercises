@@ -1,5 +1,5 @@
 /*Package handlers Todo*/
-package todohandlers
+package todo
 
 import (
 	"net/http"

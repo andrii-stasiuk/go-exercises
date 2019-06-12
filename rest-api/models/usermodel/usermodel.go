@@ -9,7 +9,7 @@ import (
 
 //
 type Users struct {
-	Db *sql.DB
+	DB *sql.DB
 }
 
 //
@@ -22,23 +22,27 @@ type User struct {
 
 //
 func New(db *sql.DB) Users {
-	return Users{Db: db}
+	return Users{DB: db}
 }
 
 //
-func (u Users) Register(user *User) (*User, error) {
+func (u Users) Register(user User) (User, error) {
+	hashedPassword, err := core.HashPassword(user.Password)
+	if err != nil {
+		return User{}, err
+	}
 	sqlStatement := "INSERT INTO users (email, password) VALUES($1, $2) RETURNING id, created_at"
-	err := u.Db.QueryRow(sqlStatement, user.Email, user.Password).Scan(&user.ID, &user.CreatedAt)
+	err = u.DB.QueryRow(sqlStatement, user.Email, hashedPassword).Scan(&user.ID, &user.CreatedAt)
 	return user, err
 }
 
 //
-func (u Users) Login(user *User) (*User, bool) {
-	pass := user.Password
+func (u Users) Login(user User) (User, bool) {
+	clearPassword := user.Password
 	sqlStatement := "SELECT id, email, password, created_at FROM users WHERE email=$1"
-	err := u.Db.QueryRow(sqlStatement, user.Email).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
-	if err == nil && core.CheckPasswordHash(pass, user.Password) {
+	err := u.DB.QueryRow(sqlStatement, user.Email).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
+	if err == nil && core.CheckPasswordHash(clearPassword, user.Password) == nil {
 		return user, true
 	}
-	return &User{}, false
+	return User{}, false
 }
