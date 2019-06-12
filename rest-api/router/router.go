@@ -2,6 +2,7 @@
 package router
 
 import (
+	"github.com/andrii-stasiuk/go-exercises/rest-api/auth"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/logger"
 	"github.com/julienschmidt/httprouter"
 )
@@ -11,6 +12,7 @@ import (
 type Route struct {
 	Method      string
 	Path        string
+	Secured     bool
 	HandlerFunc httprouter.Handle
 }
 
@@ -18,12 +20,19 @@ type Route struct {
 type Routes []Route
 
 // NewRouter - reads from the routes slice to translate the values to httprouter.Handle
-func NewRouter(routes Routes) *httprouter.Router {
+func NewRouter(routes ...Routes) *httprouter.Router {
+	var ApplicationRoutes []Route
+	for _, r := range routes {
+		ApplicationRoutes = append(ApplicationRoutes, r...)
+	}
 	router := httprouter.New()
-	for _, route := range routes {
+	for _, route := range ApplicationRoutes {
 		var handle httprouter.Handle
 		handle = route.HandlerFunc
 		handle = logger.Logger(handle)
+		if route.Secured {
+			handle = auth.Auth(handle)
+		}
 		router.Handle(route.Method, route.Path, handle)
 	}
 	return router

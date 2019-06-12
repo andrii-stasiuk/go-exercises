@@ -39,7 +39,10 @@ func main() {
 	}
 	fmt.Printf("SQL Server version: %s\n", sqlVersion)
 
-	newRouer := router.NewRouter(router.AllRoutes(todo.New(&todoModel), user.New(&userModel)))
+	newRouer := router.NewRouter(
+		router.TodoRoutes(todo.New(&todoModel)),
+		router.UserRoutes(user.New(&userModel)),
+		router.ProtectedRoutes(todo.New(&todoModel)))
 	srv := core.NewServer(addrPtr, newRouer)
 
 	done := make(chan struct{}, 1)

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/andrii-stasiuk/go-exercises/rest-api/auth"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/core"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/models/usermodel"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/responses"
@@ -34,5 +35,5 @@ func (uh UserHandlers) UserLogin(w http.ResponseWriter, r *http.Request, _ httpr
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unable to login")
 		return
 	}
-	responses.WriteOKResponse(w, res)
+	responses.WriteOKResponse(w, auth.GetToken(res))
 }
