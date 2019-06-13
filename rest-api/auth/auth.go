@@ -2,14 +2,13 @@ package auth
 
 import (
 	"context"
-	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/andrii-stasiuk/go-exercises/rest-api/models/usermodel"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/responses"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 )
@@ -24,13 +23,12 @@ type Token struct {
 // Auth - middleware function for Authentication process
 func Auth(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Params)) func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-		var header = r.Header.Get("x-access-token") // Grab the token from the header
-		header = strings.TrimSpace(header)
+		// Grab the token from the header
+		header := strings.TrimSpace(r.Header.Get("x-access-token"))
 		if header == "" {
+			log.Println("Missing auth token")
 			// Token is missing, returns with error code 403 Unauthorized
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusForbidden)
-			io.WriteString(w, `{"Error": "Missing auth token"}`)
+			responses.WriteErrorResponse(w, http.StatusForbidden, "Missing auth token")
 			return
 		}
 		tk := &Token{}
@@ -38,9 +36,8 @@ func Auth(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Param
 			return []byte("secret_key"), nil
 		})
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusForbidden)
-			json.NewEncoder(w).Encode(err)
+			log.Println(err)
+			responses.WriteErrorResponse(w, http.StatusForbidden, err.Error())
 			return
 		}
 		userKey := "user"
@@ -63,6 +60,7 @@ func GetToken(us usermodel.User) map[string]interface{} {
 	tokenString, err := token.SignedString([]byte("secret_key"))
 	if err != nil {
 		log.Println(err)
+		return map[string]interface{}{}
 	}
 	resp := make(map[string]interface{})
 	resp["token"] = tokenString // Store the token in the response
