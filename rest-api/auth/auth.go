@@ -3,7 +3,8 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -20,15 +21,16 @@ type Token struct {
 	*jwt.StandardClaims
 }
 
-// Auth - reserved for Authentication
+// Auth - middleware function for Authentication process
 func Auth(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Params)) func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-		var header = r.Header.Get("x-access-token") //Grab the token from the header
+		var header = r.Header.Get("x-access-token") // Grab the token from the header
 		header = strings.TrimSpace(header)
 		if header == "" {
-			//Token is missing, returns with error code 403 Unauthorized
+			// Token is missing, returns with error code 403 Unauthorized
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusForbidden)
-			json.NewEncoder(w).Encode(`{"Message": "Missing auth token"}`)
+			io.WriteString(w, `{"Error": "Missing auth token"}`)
 			return
 		}
 		tk := &Token{}
@@ -36,16 +38,18 @@ func Auth(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Param
 			return []byte("secret_key"), nil
 		})
 		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusForbidden)
-			json.NewEncoder(w).Encode(err.Error())
+			json.NewEncoder(w).Encode(err)
 			return
 		}
-		ctx := context.WithValue(r.Context(), "user", tk)
+		userKey := "user"
+		ctx := context.WithValue(r.Context(), &userKey, tk)
 		fn(w, r.WithContext(ctx), param)
 	}
 }
 
-//
+// GetToken - function that creates new token for a logged in user
 func GetToken(us usermodel.User) map[string]interface{} {
 	expiresAt := time.Now().Add(time.Minute * 100000).Unix()
 	tk := &Token{
@@ -56,12 +60,12 @@ func GetToken(us usermodel.User) map[string]interface{} {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-	tokenString, error := token.SignedString([]byte("secret_key"))
-	if error != nil {
-		fmt.Println(error)
+	tokenString, err := token.SignedString([]byte("secret_key"))
+	if err != nil {
+		log.Println(err)
 	}
-	var resp = map[string]interface{}{"status": false, "message": "logged in"}
-	resp["token"] = tokenString //Store the token in the response
+	resp := make(map[string]interface{})
+	resp["token"] = tokenString // Store the token in the response
 	resp["user"] = map[string]interface{}{"id": us.ID, "email": us.Email, "created_at": us.CreatedAt}
 	return resp
 }
