@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -21,7 +20,7 @@ func main() {
 	var addrPtr = flag.String("addr", "127.0.0.1:8000", "Server IPv4 address")
 	flag.Parse()
 
-	fmt.Println("Server is starting...")
+	log.Println("Server is starting...")
 
 	dataBase, err := core.DatabaseConnect("postgres", *dbURLPtr)
 	if err != nil {
@@ -37,7 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("SQL Server version: %s\n", sqlVersion)
+	log.Printf("SQL Server version: %s\n", sqlVersion)
 
 	newRouer := router.NewRouter(
 		router.TodoRoutes(todo.New(&todoModel)),
@@ -56,5 +55,5 @@ func main() {
 	core.StartServer(addrPtr, srv)
 
 	<-done
-	fmt.Println("Server gracefully stopped")
+	log.Println("Server gracefully stopped")
 }

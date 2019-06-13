@@ -4,7 +4,6 @@ package core
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -57,7 +56,7 @@ func NewServer(listenAddr *string, router *httprouter.Router) *http.Server {
 
 // StartServer function that starts listen on server:port
 func StartServer(listenAddr *string, server *http.Server) {
-	fmt.Println("Server is ready to handle requests at", *listenAddr)
+	log.Println("Server is ready to handle requests at", *listenAddr)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on %s: %v\n", *listenAddr, err)
 	}
@@ -68,7 +67,7 @@ func ShutdownServer(server *http.Server, quit <-chan os.Signal, done chan<- stru
 	// Waiting for SIGINT (pkill -2)
 	<-quit
 	// We received an interrupt signal, shut down
-	fmt.Println("Server is shutting down...")
+	log.Println("Server is shutting down...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
