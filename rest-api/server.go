@@ -40,8 +40,7 @@ func main() {
 
 	newRouer := router.NewRouter(
 		router.TodoRoutes(todo.New(&todoModel)),
-		router.UserRoutes(user.New(&userModel)),
-		router.ProtectedRoutes(todo.New(&todoModel)))
+		router.UserRoutes(user.New(&userModel)))
 	srv := core.NewServer(addrPtr, newRouer)
 
 	done := make(chan struct{}, 1)

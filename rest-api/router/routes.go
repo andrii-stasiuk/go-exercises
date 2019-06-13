@@ -12,9 +12,9 @@ func TodoRoutes(hl todo.TodoHandlers) Routes {
 		Route{"GET", "/", false, hl.Default},
 		Route{"GET", "/api/todos/", false, hl.TodoIndex},
 		Route{"GET", "/api/todos/:id/", false, hl.TodoShow},
-		Route{"DELETE", "/api/todos/:id/", false, hl.TodoDelete},
-		Route{"POST", "/api/todos/", false, hl.TodoCreate},
-		Route{"PATCH", "/api/todos/:id/", false, hl.TodoUpdate},
+		Route{"DELETE", "/api/todos/:id/", true, hl.TodoDelete},
+		Route{"POST", "/api/todos/", true, hl.TodoCreate},
+		Route{"PATCH", "/api/todos/:id/", true, hl.TodoUpdate},
 	}
 	return routes
 }
@@ -24,14 +24,6 @@ func UserRoutes(us user.UserHandlers) Routes {
 	routes := Routes{
 		Route{"POST", "/api/users/", false, us.UserRegister},
 		Route{"POST", "/api/users/login/", false, us.UserLogin},
-	}
-	return routes
-}
-
-// ProtectedRoutes - Routes that require Authentication
-func ProtectedRoutes(hl todo.TodoHandlers) Routes {
-	routes := Routes{
-		Route{"POST", "/api/test/", true, hl.Default}, // temporary, for development purposes
 	}
 	return routes
 }
