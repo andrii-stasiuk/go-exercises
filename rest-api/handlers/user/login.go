@@ -14,7 +14,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-//
+// UserLogin - handler for the user login action
 func (uh UserHandlers) UserLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	user := usermodel.User{}
 	decoder := json.NewDecoder(r.Body)

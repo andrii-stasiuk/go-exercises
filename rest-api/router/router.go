@@ -19,11 +19,12 @@ type Route struct {
 // Routes slice of Route
 type Routes []Route
 
-// NewRouter - reads from the routes slice to translate the values to httprouter.Handle
+// NewRouter - reads from the routes slice (of slices) to translate the values to httprouter.Handle
 func NewRouter(routes ...Routes) *httprouter.Router {
 	var ApplicationRoutes []Route
-	for _, r := range routes {
-		ApplicationRoutes = append(ApplicationRoutes, r...)
+	// Converting a two-dimensional slice into a one-dimensional slice
+	for _, routesElem := range routes {
+		ApplicationRoutes = append(ApplicationRoutes, routesElem...)
 	}
 	router := httprouter.New()
 	for _, route := range ApplicationRoutes {

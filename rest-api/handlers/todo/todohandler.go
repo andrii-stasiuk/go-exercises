@@ -6,11 +6,11 @@ import (
 )
 
 type todoInterface interface {
-	Index() ([]*todomodel.Todo, error)
-	Show(id string) (*todomodel.Todo, error)
-	Delete(id string) (*todomodel.Todo, error)
-	Create(todo *todomodel.Todo) (*todomodel.Todo, error)
-	Update(todo *todomodel.Todo) (*todomodel.Todo, error)
+	Index() ([]todomodel.Todo, error)
+	Show(id string) (todomodel.Todo, error)
+	Delete(id string) (todomodel.Todo, error)
+	Create(todo todomodel.Todo) (todomodel.Todo, error)
+	Update(todo todomodel.Todo) (todomodel.Todo, error)
 }
 
 // Handlers structure for handling requests

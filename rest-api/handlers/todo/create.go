@@ -27,7 +27,7 @@ func (h TodoHandlers) TodoCreate(w http.ResponseWriter, r *http.Request, _ httpr
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Incorrect input data")
 		return
 	}
-	res, err := h.SQL.Create(&todo)
+	res, err := h.SQL.Create(todo)
 	if err != nil {
 		log.Println(err)
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")

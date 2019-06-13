@@ -35,7 +35,7 @@ func (h TodoHandlers) TodoUpdate(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 	todo.ID = int(id64)
-	res, err := h.SQL.Update(&todo)
+	res, err := h.SQL.Update(todo)
 	if err != nil {
 		log.Println(err)
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unprocessible Entity")

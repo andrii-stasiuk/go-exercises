@@ -14,7 +14,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-//
+// UserRegister - handler for the user register action
 func (uh UserHandlers) UserRegister(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	user := usermodel.User{}
 	decoder := json.NewDecoder(r.Body)

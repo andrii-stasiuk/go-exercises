@@ -1,4 +1,4 @@
-/*Package userhandler*/
+/*Package user*/
 package user
 
 import (
@@ -10,12 +10,12 @@ type userInterface interface {
 	Login(user usermodel.User) (usermodel.User, bool)
 }
 
-// Handlers structure for handling requests
+// UserHandlers structure for handling requests
 type UserHandlers struct {
 	SQL userInterface
 }
 
-// New is a constructor ...
+// New is a constructor for UserHandlers
 func New(us userInterface) UserHandlers {
 	return UserHandlers{SQL: us}
 }
