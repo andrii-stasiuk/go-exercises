@@ -54,17 +54,24 @@ func Auth(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Param
 		} else {
 			tknStr = tokenCookie.Value
 		}
-		tk := &Token{}
-		_, err = jwt.ParseWithClaims(tknStr, tk, func(token *jwt.Token) (interface{}, error) {
+		claims := &Token{}
+		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
 			return signingKey, nil
 		})
 		if err != nil {
-			log.Println(err)
-			responses.WriteErrorResponse(w, http.StatusForbidden, err.Error())
+			// Malformed token, returns with http code 403 as usual
+			log.Println("Malformed authentication token")
+			responses.WriteErrorResponse(w, http.StatusForbidden, "Malformed authentication token")
+			return
+		}
+		if !tkn.Valid {
+			// Token is invalid, maybe not signed on this server
+			log.Println("Token is not valid")
+			responses.WriteErrorResponse(w, http.StatusUnauthorized, "Token is not valid")
 			return
 		}
 		userKey := "user"
-		ctx := context.WithValue(r.Context(), &userKey, tk)
+		ctx := context.WithValue(r.Context(), &userKey, claims)
 		fn(w, r.WithContext(ctx), param)
 	}
 }
