@@ -35,5 +35,14 @@ func (uh UserHandlers) UserLogin(w http.ResponseWriter, r *http.Request, _ httpr
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unable to login")
 		return
 	}
-	responses.WriteOKResponse(w, auth.GetToken(res))
+	tokenString, expirationTime := auth.GetToken(res)
+	http.SetCookie(w, &http.Cookie{
+		Name:    "x-access-token",
+		Value:   tokenString,
+		Expires: expirationTime,
+	})
+	resp := make(map[string]interface{})
+	resp["token"] = tokenString // Store the token in the response
+	resp["user"] = map[string]interface{}{"id": res.ID, "email": res.Email, "created_at": res.CreatedAt}
+	responses.WriteOKResponse(w, resp)
 }
