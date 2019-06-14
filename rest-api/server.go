@@ -12,19 +12,31 @@ import (
 	"github.com/andrii-stasiuk/go-exercises/rest-api/models/todomodel"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/models/usermodel"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/router"
+	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 )
 
 var dbURLPtr, addrPtr string
 
 func init() {
-	flag.StringVar(&dbURLPtr, "db", "postgres://testuser:testpass@localhost:5555/testdb?sslmode=disable", "Specify the URL to the database")
+	flag.StringVar(&dbURLPtr, "db", "postgres://postgres:@localhost:5432/postgres?sslmode=disable", "Specify the URL to the database")
 	flag.StringVar(&addrPtr, "addr", "127.0.0.1:8000", "Server IPv4 address")
 	flag.Parse()
 }
 
 func main() {
 	log.Println("Server is starting...")
+
+	db, err := gorm.Open("postgres", dbURLPtr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	db.DB().SetMaxIdleConns(10)
+	db.DB().SetMaxOpenConns(100)
+	defer db.Close()
+
+	log.Println("Successfully connected to Database")
+	db.Debug().AutoMigrate(&todomodel.Todo{})
 
 	dataBase, err := core.DatabaseConnect("postgres", dbURLPtr)
 	if err != nil {
@@ -33,8 +45,9 @@ func main() {
 	dataBase.SetMaxIdleConns(100)
 	defer dataBase.Close()
 
-	todoModel := todomodel.New(dataBase)
+	todoModel := todomodel.New(db)
 	userModel := usermodel.New(dataBase)
+
 	sqlVersion, err := core.DatabaseVersion(dataBase)
 	// Checks the operation of the database server and returns it version number
 	if err != nil {

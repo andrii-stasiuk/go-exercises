@@ -30,19 +30,7 @@ func Auth(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Param
 		// Grab the token from the header
 		header := strings.TrimSpace(r.Header.Get("x-access-token"))
 		tokenCookie, err := r.Cookie("x-access-token")
-		if err != nil {
-			if err == http.ErrNoCookie {
-				// If the cookie is not set, return an unauthorized status
-				log.Println("Unauthorized")
-				responses.WriteErrorResponse(w, http.StatusUnauthorized, "Unauthorized")
-				return
-			}
-			// For any other type of error, return a bad request status
-			log.Println("Bad Request")
-			responses.WriteErrorResponse(w, http.StatusBadRequest, "Bad Request")
-			return
-		}
-		if !core.CheckStr(header) && !core.CheckStr(tokenCookie.Value) {
+		if !core.CheckStr(header) && err != nil {
 			// Token is missing, returns with error code 403 Unauthorized
 			log.Println("Missing auth token")
 			responses.WriteErrorResponse(w, http.StatusForbidden, "Missing auth token")

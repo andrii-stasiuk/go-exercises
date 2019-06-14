@@ -28,13 +28,12 @@ func (h TodoHandlers) TodoUpdate(w http.ResponseWriter, r *http.Request, params 
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Incorrect input data")
 		return
 	}
-	id64, err := strconv.ParseInt(params.ByName("id"), 10, 64)
+	todo.ID, err = strconv.ParseUint(params.ByName("id"), 10, 64)
 	if err != nil {
 		log.Println("Incorrect input data")
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Incorrect ID")
 		return
 	}
-	todo.ID = int(id64)
 	res, err := h.SQL.Update(todo)
 	if err != nil {
 		log.Println(err)
