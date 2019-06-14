@@ -15,14 +15,18 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func main() {
-	var dbURLPtr = flag.String("db", "postgres://testuser:testpass@localhost:5555/testdb?sslmode=disable", "Specify the URL to the database")
-	var addrPtr = flag.String("addr", "127.0.0.1:8000", "Server IPv4 address")
-	flag.Parse()
+var dbURLPtr, addrPtr string
 
+func init() {
+	flag.StringVar(&dbURLPtr, "db", "postgres://testuser:testpass@localhost:5555/testdb?sslmode=disable", "Specify the URL to the database")
+	flag.StringVar(&addrPtr, "addr", "127.0.0.1:8000", "Server IPv4 address")
+	flag.Parse()
+}
+
+func main() {
 	log.Println("Server is starting...")
 
-	dataBase, err := core.DatabaseConnect("postgres", *dbURLPtr)
+	dataBase, err := core.DatabaseConnect("postgres", dbURLPtr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,7 +45,7 @@ func main() {
 	newRouer := router.NewRouter(
 		router.TodoRoutes(todo.New(&todoModel)),
 		router.UserRoutes(user.New(&userModel)))
-	srv := core.NewServer(addrPtr, newRouer)
+	srv := core.NewServer(&addrPtr, newRouer)
 
 	done := make(chan struct{}, 1)
 	// Setting up signal capturing
@@ -51,7 +55,7 @@ func main() {
 
 	go core.ShutdownServer(srv, quit, done)
 
-	core.StartServer(addrPtr, srv)
+	core.StartServer(&addrPtr, srv)
 
 	<-done
 	log.Println("Server gracefully stopped")
