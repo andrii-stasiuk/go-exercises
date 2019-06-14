@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -90,7 +91,7 @@ func CheckInt(id string) bool {
 
 // CheckStr function for basic string checking, can be extended in the future
 func CheckStr(str string) bool {
-	if len(str) > 0 && str != "`" {
+	if len(strings.TrimSpace(str)) != 0 {
 		return true
 	}
 	return false
