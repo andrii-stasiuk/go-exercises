@@ -18,7 +18,7 @@ import (
 var dbURLPtr, addrPtr string
 
 func init() {
-	flag.StringVar(&dbURLPtr, "db", "postgres://postgres:@localhost:5432/postgres?sslmode=disable", "Specify the URL to the database")
+	flag.StringVar(&dbURLPtr, "db", "postgres://testuser:testpass@localhost:5555/testdb?sslmode=disable", "Specify the URL to the database")
 	flag.StringVar(&addrPtr, "addr", "127.0.0.1:8000", "Server IPv4 address")
 	flag.Parse()
 }

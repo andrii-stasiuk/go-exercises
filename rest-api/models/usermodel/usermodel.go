@@ -28,13 +28,6 @@ func NewUser(db *gorm.DB) Users {
 
 // Register method for user registration logic
 func (u Users) Register(user User) (User, error) {
-	// hashedPassword, err := core.HashPassword(user.Password)
-	// if err != nil {
-	// 	return User{}, err
-	// }
-	// sqlStatement := "INSERT INTO users (email, password) VALUES($1, $2) RETURNING id, created_at"
-	// err = u.DB.QueryRow(sqlStatement, user.Email, hashedPassword).Scan(&user.ID, &user.CreatedAt)
-	// return user, err
 	var err error
 	user.Password, err = core.HashPassword(user.Password)
 	if err != nil {
@@ -45,13 +38,6 @@ func (u Users) Register(user User) (User, error) {
 
 // Login method for user login logic
 func (u Users) Login(user User) (User, bool) {
-	// clearPassword := user.Password
-	// sqlStatement := "SELECT id, email, password, created_at FROM users WHERE email=$1"
-	// err := u.DB.QueryRow(sqlStatement, user.Email).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
-	// if err == nil && core.CheckPasswordHash(clearPassword, user.Password) == nil {
-	// 	return user, true
-	// }
-	// return User{}, false
 	clearPassword := user.Password
 	err := u.DB.Where("email = ?", user.Email).First(&user).Error
 	if err == nil && core.CheckPasswordHash(clearPassword, user.Password) == nil {
