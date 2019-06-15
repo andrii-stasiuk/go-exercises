@@ -35,8 +35,8 @@ var States = map[string]string{
 	"8": "archived",
 }
 
-// New gets the address of the database as parameter and returns new Model struct
-func New(db *gorm.DB) Todos {
+// NewTodo gets the address of the database as parameter and returns new Model struct
+func NewTodo(db *gorm.DB) Todos {
 	return Todos{DB: db}
 }
 
@@ -103,7 +103,6 @@ func (t Todos) Create(todo Todo) (Todo, error) {
 	// }
 	// todo.State = States[todo.State] // Changes the State to show it by API in human-readable form (reserved for future purposes)
 	// return todo, err
-	// createdTodo := m.DB.Create(&todo)
 	return todo, t.DB.Create(&todo).Error
 }
 
@@ -116,9 +115,6 @@ func (t Todos) Update(todo Todo) (Todo, error) {
 	// }
 	// todo.State = States[todo.State] // Changes the State to show it by API in human-readable form (reserved for future purposes)
 	// return todo, err
-	//m.DB.Model(&todo).Update("name", "jinzhu")
-	//fmt.Println(todo.CreatedAt)
-	//m.DB.Where("id = ?", todo.ID).First(&todo)
 	err := t.DB.Where("id = ?", todo.ID).First(&Todo{}).Error // Check if exists
 	if err != nil {
 		return Todo{}, err

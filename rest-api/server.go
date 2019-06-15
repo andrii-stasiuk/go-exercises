@@ -12,7 +12,6 @@ import (
 	"github.com/andrii-stasiuk/go-exercises/rest-api/models/todomodel"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/models/usermodel"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/router"
-	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 )
 
@@ -27,33 +26,17 @@ func init() {
 func main() {
 	log.Println("Server is starting...")
 
-	db, err := gorm.Open("postgres", dbURLPtr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.DB().SetMaxIdleConns(10)
-	db.DB().SetMaxOpenConns(100)
-	defer db.Close()
-
-	log.Println("Successfully connected to Database")
-	db.Debug().AutoMigrate(&todomodel.Todo{})
-
 	dataBase, err := core.DatabaseConnect("postgres", dbURLPtr)
 	if err != nil {
 		log.Fatal(err)
 	}
-	dataBase.SetMaxIdleConns(100)
 	defer dataBase.Close()
 
-	todoModel := todomodel.New(db)
-	userModel := usermodel.New(dataBase)
+	log.Println("Successfully connected to Database")
+	dataBase.Debug().AutoMigrate(&todomodel.Todo{}, &usermodel.User{})
 
-	sqlVersion, err := core.DatabaseVersion(dataBase)
-	// Checks the operation of the database server and returns it version number
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("SQL Server version: %s\n", sqlVersion)
+	todoModel := todomodel.NewTodo(dataBase)
+	userModel := usermodel.NewUser(dataBase)
 
 	newRouer := router.NewRouter(
 		router.TodoRoutes(todo.New(&todoModel)),

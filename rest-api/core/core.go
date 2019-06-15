@@ -3,7 +3,6 @@ package core
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -11,37 +10,24 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // DatabaseConnect func creates and returnes new db (reserved for future purposes - to use with connection parameters)
-func DatabaseConnect(driverName, dataSourceName string) (*sql.DB, error) {
-	db, err := sql.Open(driverName, dataSourceName)
+func DatabaseConnect(driverName, dataSourceName string) (*gorm.DB, error) {
+	db, err := gorm.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
 	}
+	err = db.DB().Ping()
+	if err != nil {
+		return nil, err
+	}
+	db.DB().SetMaxIdleConns(10)
+	db.DB().SetMaxOpenConns(100)
 	return db, nil
-}
-
-// DatabaseVersion function that checks the operation of the database server and returns it version number
-func DatabaseVersion(db *sql.DB) (string, error) {
-	// Use background context
-	ctx := context.Background()
-
-	// Ping database to see if it's still alive. Important for handling network issues and long queries.
-	err := db.PingContext(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	var result string
-	// Run query and scan for result with version number of PostgreSQL
-	err = db.QueryRowContext(ctx, "SELECT version();").Scan(&result)
-	if err != nil {
-		return "", err
-	}
-	return result, nil
 }
 
 // NewServer function that creates and returns http.Server
