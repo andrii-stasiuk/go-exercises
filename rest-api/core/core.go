@@ -3,6 +3,7 @@ package core
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -15,8 +16,23 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// DatabaseConnect func creates and returnes new db (reserved for future purposes - to use with connection parameters)
-func DatabaseConnect(driverName, dataSourceName string) (*gorm.DB, error) {
+// DBConnectSQL func creates and returnes new db (reserved for future purposes - to use with connection parameters)
+func DBConnectSQL(driverName, dataSourceName string) (*sql.DB, error) {
+	db, err := sql.Open(driverName, dataSourceName)
+	if err != nil {
+		return nil, err
+	}
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+	db.SetMaxIdleConns(10)
+	db.SetMaxOpenConns(100)
+	return db, nil
+}
+
+// DBConnectGORM - reserved for future purposes
+func DBConnectGORM(driverName, dataSourceName string) (interface{}, error) {
 	db, err := gorm.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
@@ -27,6 +43,7 @@ func DatabaseConnect(driverName, dataSourceName string) (*gorm.DB, error) {
 	}
 	db.DB().SetMaxIdleConns(10)
 	db.DB().SetMaxOpenConns(100)
+	db.Debug().AutoMigrate()
 	return db, nil
 }
 
