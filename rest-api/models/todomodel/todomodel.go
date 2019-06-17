@@ -2,12 +2,12 @@
 package todomodel
 
 import (
-	"database/sql"
+	"github.com/jmoiron/sqlx"
 )
 
 // Todos model store "context" values and connections in the server struct
 type Todos struct {
-	DB *sql.DB
+	DB *sqlx.DB
 }
 
 // Todo main identifier
@@ -16,8 +16,8 @@ type Todo struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	State       string `json:"state"`
-	CreatedAt   string `json:"created_at"`
-	UpdatedAt   string `json:"updated_at"`
+	CreatedAt   string `json:"created_at" db:"created_at"`
+	UpdatedAt   string `json:"updated_at" db:"updated_at"`
 }
 
 // States - a map to store the states of Todo with the ID as the key,
@@ -33,73 +33,45 @@ var States = map[string]string{
 	"8": "archived",
 }
 
-// New gets the address of the database as parameter and returns new Model struct
-func NewTodo(db *sql.DB) Todos {
+// NewTodo gets the address of the database as parameter and returns new Model struct
+func NewTodo(db *sqlx.DB) Todos {
 	return Todos{DB: db}
 }
 
 // Index method to get all the records in a table
-func (m Todos) Index() ([]Todo, error) {
-	var todos []Todo
-	rows, err := m.DB.Query("SELECT id, name, description, state, created_at, updated_at FROM todos ORDER BY id")
-	if err != nil {
-		return []Todo{}, err
-	}
-	for rows.Next() {
-		todo := Todo{}
-		err := rows.Scan(&todo.ID, &todo.Name, &todo.Description, &todo.State, &todo.CreatedAt, &todo.UpdatedAt)
-		if err != nil {
-			return []Todo{}, err
-		}
-		todo.State = States[todo.State] // Changes the State to show it by API in human-readable form (reserved for future purposes)
-		todos = append(todos, todo)
-	}
-	err = rows.Close()
+func (t Todos) Index() ([]Todo, error) {
+	todos := []Todo{}
+	sqlStatement := "SELECT * FROM todos ORDER BY id"
+	err := t.DB.Select(&todos, sqlStatement)
 	return todos, err
 }
 
 // Show method to get a specific record from a table
-func (m Todos) Show(id string) (Todo, error) {
-	var todo Todo
-	row := m.DB.QueryRow("SELECT id, state, name, description, created_at, updated_at FROM todos WHERE id=$1", id)
-	err := row.Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
-	if err != nil {
-		return Todo{}, err
-	}
-	todo.State = States[todo.State] // Changes the State to show it by API in human-readable form (reserved for future purposes)
+func (t Todos) Show(id string) (Todo, error) {
+	todo := Todo{}
+	sqlStatement := "SELECT * FROM todos WHERE id=$1"
+	err := t.DB.Get(&todo, sqlStatement, id)
 	return todo, err
 }
 
 // Delete method to delete a specific record from a table
-func (m Todos) Delete(id string) (Todo, error) {
-	var todo Todo
-	sqlStatement := `DELETE FROM todos WHERE id=$1 RETURNING id, state, name, description, created_at, updated_at`
-	err := m.DB.QueryRow(sqlStatement, id).Scan(&todo.ID, &todo.State, &todo.Name, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt)
-	if err != nil {
-		return Todo{}, err
-	}
-	todo.State = States[todo.State] // Changes the State to show it by API in human-readable form (reserved for future purposes)
+func (t Todos) Delete(id string) (Todo, error) {
+	todo := Todo{}
+	sqlStatement := "DELETE FROM todos WHERE id=$1 RETURNING id, state, name, description, created_at, updated_at"
+	err := t.DB.Get(&todo, sqlStatement, id)
 	return todo, err
 }
 
 // Create method to create a record in the table
-func (m Todos) Create(todo Todo) (Todo, error) {
+func (t Todos) Create(todo Todo) (Todo, error) {
 	sqlStatement := "INSERT INTO todos (name, description, state) VALUES($1, $2, $3) RETURNING id, created_at, updated_at"
-	err := m.DB.QueryRow(sqlStatement, todo.Name, todo.Description, todo.State).Scan(&todo.ID, &todo.CreatedAt, &todo.UpdatedAt)
-	if err != nil {
-		return Todo{}, err
-	}
-	todo.State = States[todo.State] // Changes the State to show it by API in human-readable form (reserved for future purposes)
+	err := t.DB.Get(&todo, sqlStatement, todo.Name, todo.Description, todo.State)
 	return todo, err
 }
 
 // Update method to change the record in the table
-func (m Todos) Update(todo Todo) (Todo, error) {
-	sqlStatement := "UPDATE todos SET name = $1, description = $2, state = $3, updated_at = now() WHERE id=$4 RETURNING id, created_at, updated_at"
-	err := m.DB.QueryRow(sqlStatement, todo.Name, todo.Description, todo.State, todo.ID).Scan(&todo.ID, &todo.CreatedAt, &todo.UpdatedAt)
-	if err != nil {
-		return Todo{}, err
-	}
-	todo.State = States[todo.State] // Changes the State to show it by API in human-readable form (reserved for future purposes)
+func (t Todos) Update(todo Todo) (Todo, error) {
+	sqlStatement := "UPDATE todos SET name = $1, description = $2, state = $3, updated_at = now() WHERE id=$4 RETURNING created_at, updated_at"
+	err := t.DB.Get(&todo, sqlStatement, todo.Name, todo.Description, todo.State, todo.ID)
 	return todo, err
 }

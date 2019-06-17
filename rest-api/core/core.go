@@ -3,7 +3,6 @@ package core
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -11,14 +10,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/jinzhu/gorm"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// DBConnectSQL func creates and returnes new db (reserved for future purposes - to use with connection parameters)
-func DBConnectSQL(driverName, dataSourceName string) (*sql.DB, error) {
-	db, err := sql.Open(driverName, dataSourceName)
+// DBConnectSQLX func creates and returnes new db (reserved for future purposes - to use with connection parameters)
+func DBConnectSQLX(driverName, dataSourceName string) (*sqlx.DB, error) {
+	db, err := sqlx.Connect(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
 	}

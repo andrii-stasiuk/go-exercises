@@ -29,9 +29,9 @@ func (uh UserHandlers) UserLogin(w http.ResponseWriter, r *http.Request, _ httpr
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Incorrect input data")
 		return
 	}
-	res, logged := uh.SQL.Login(user)
-	if !logged {
-		log.Println("Unable to login")
+	res, err := uh.SQL.Login(user)
+	if err != nil {
+		log.Println(err)
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unable to login")
 		return
 	}
