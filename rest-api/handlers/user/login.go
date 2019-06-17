@@ -36,6 +36,7 @@ func (uh UserHandlers) UserLogin(w http.ResponseWriter, r *http.Request, _ httpr
 		return
 	}
 	tokenString, expirationTime := auth.GetToken(res)
+	w.Header().Set("Authorization", "Bearer "+tokenString)
 	http.SetCookie(w, &http.Cookie{
 		Name:    "x-access-token",
 		Value:   tokenString,

@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andrii-stasiuk/go-exercises/rest-api/core"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/models/usermodel"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/responses"
 	"github.com/dgrijalva/jwt-go"
@@ -28,19 +27,19 @@ var signingKey = []byte("secret_key")
 func Auth(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Params)) func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 		// Grab the token from the header
-		header := strings.TrimSpace(r.Header.Get("x-access-token"))
+		authToken := r.Header.Get("Authorization")
+		authArr := strings.Split(authToken, " ")
 		tokenCookie, err := r.Cookie("x-access-token")
-		if !core.CheckStr(header) && err != nil {
-			// Token is missing, returns with error code 403 Unauthorized
-			log.Println("Missing auth token")
-			responses.WriteErrorResponse(w, http.StatusForbidden, "Missing auth token")
-			return
-		}
 		var tknStr string
-		if core.CheckStr(header) {
-			tknStr = header
-		} else {
+		if len(authArr) == 2 {
+			tknStr = authArr[1]
+		} else if err == nil {
 			tknStr = tokenCookie.Value
+		} else {
+			// Token is missing, returns with error code 401 Unauthorized
+			log.Println("Missing auth token")
+			responses.WriteErrorResponse(w, http.StatusUnauthorized, "Missing auth token")
+			return
 		}
 		claims := &Token{}
 		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
