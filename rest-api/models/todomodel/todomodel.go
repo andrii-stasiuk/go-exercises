@@ -41,7 +41,8 @@ func NewTodo(db *sqlx.DB) Todos {
 // Index method to get all the records in a table
 func (t Todos) Index() ([]Todo, error) {
 	todos := []Todo{}
-	sqlStatement := "SELECT * FROM todos ORDER BY id"
+	sqlStatement := `SELECT todos.id, todos.name, todos.description, states.state, todos.created_at, todos.updated_at 
+	FROM todos LEFT JOIN states ON todos.state=states.id ORDER BY id`
 	err := t.DB.Select(&todos, sqlStatement)
 	return todos, err
 }
@@ -49,7 +50,8 @@ func (t Todos) Index() ([]Todo, error) {
 // Show method to get a specific record from a table
 func (t Todos) Show(id string) (Todo, error) {
 	todo := Todo{}
-	sqlStatement := "SELECT * FROM todos WHERE id=$1"
+	sqlStatement := `SELECT todos.id, todos.name, todos.description, states.state, todos.created_at, todos.updated_at
+	FROM todos LEFT JOIN states ON todos.state=states.id WHERE todos.id=$1`
 	err := t.DB.Get(&todo, sqlStatement, id)
 	return todo, err
 }
