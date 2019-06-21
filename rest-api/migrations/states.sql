@@ -5,7 +5,7 @@ CREATE TABLE public.states (
 
 
 
-INSERT INTO `public.states` (`id`, `state`) VALUES
+INSERT INTO public.states (id, state) VALUES
 (1, 'created'),
 (2, 'wait'),
 (3, 'canceled'),

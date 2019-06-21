@@ -2,6 +2,8 @@
 package todomodel
 
 import (
+	"strconv"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -73,7 +75,17 @@ func (t Todos) Create(todo Todo) (Todo, error) {
 
 // Update method to change the record in the table
 func (t Todos) Update(todo Todo) (Todo, error) {
-	sqlStatement := "UPDATE todos SET name = $1, description = $2, state = $3, updated_at = now() WHERE id=$4 RETURNING created_at, updated_at"
-	err := t.DB.Get(&todo, sqlStatement, todo.Name, todo.Description, todo.State, todo.ID)
+	sqlStatement := "UPDATE todos SET "
+	if todo.Name != "" {
+		sqlStatement += "name = '" + todo.Name + "', "
+	}
+	if todo.Description != "" {
+		sqlStatement += "description = '" + todo.Description + "', "
+	}
+	if todo.State != "" {
+		sqlStatement += "state = " + todo.State + ", "
+	}
+	sqlStatement += "updated_at = now() WHERE id=" + strconv.FormatUint(todo.ID, 10) + " RETURNING name, description, state, created_at, updated_at"
+	err := t.DB.Get(&todo, sqlStatement)
 	return todo, err
 }
