@@ -22,19 +22,6 @@ type Todo struct {
 	UpdatedAt   string `json:"updated_at" db:"updated_at"`
 }
 
-// States - a map to store the states of Todo with the ID as the key,
-// it can be stored in other related table "states" in the future
-var States = map[string]string{
-	"1": "created",
-	"2": "wait",
-	"3": "canceled",
-	"4": "blocked",
-	"5": "in process/doing",
-	"6": "review",
-	"7": "done",
-	"8": "archived",
-}
-
 // NewTodo gets the address of the database as parameter and returns new Model struct
 func NewTodo(db *sqlx.DB) Todos {
 	return Todos{DB: db}
