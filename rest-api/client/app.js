@@ -8,6 +8,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+// Component for user login (main component for now)
 var LoginControl = function (_React$Component) {
   _inherits(LoginControl, _React$Component);
 
@@ -16,21 +17,49 @@ var LoginControl = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, (LoginControl.__proto__ || Object.getPrototypeOf(LoginControl)).call(this, props));
 
-    _this.handleLoginClick = _this.handleLoginClick.bind(_this);
+    _this.handleChange = _this.handleChange.bind(_this);
+    _this.handleFormSubmit = _this.handleFormSubmit.bind(_this);
+    // this.handleLoginClick = this.handleLoginClick.bind(this);
     _this.handleLogoutClick = _this.handleLogoutClick.bind(_this);
+    _this.Auth = new AuthService();
     _this.state = { isLoggedIn: false };
     return _this;
   }
 
+  // handleLoginClick() {
+  //   this.setState({ isLoggedIn: true });
+  // }
+
   _createClass(LoginControl, [{
-    key: "handleLoginClick",
-    value: function handleLoginClick() {
-      this.setState({ isLoggedIn: true });
-    }
-  }, {
     key: "handleLogoutClick",
     value: function handleLogoutClick() {
+      this.Auth.logout();
       this.setState({ isLoggedIn: false });
+    }
+  }, {
+    key: "handleFormSubmit",
+    value: function handleFormSubmit(e) {
+      var _this2 = this;
+
+      e.preventDefault();
+
+      this.Auth.login(this.state.email, this.state.password).then(function (res) {
+        //this.props.history.replace("/");
+        _this2.setState({ isLoggedIn: true });
+      }).catch(function (err) {
+        alert(err);
+      });
+    }
+  }, {
+    key: "handleChange",
+    value: function handleChange(e) {
+      this.setState(_defineProperty({}, e.target.name, e.target.value));
+    }
+  }, {
+    key: "componentWillMount",
+    value: function componentWillMount() {
+      if (this.Auth.loggedIn()) this.setState({ isLoggedIn: true });
+      // if (this.Auth.loggedIn()) this.props.history.replace("/");
     }
   }, {
     key: "render",
@@ -40,21 +69,153 @@ var LoginControl = function (_React$Component) {
 
       if (isLoggedIn) {
         button = React.createElement(LogoutButton, { onClick: this.handleLogoutClick });
-      } else {
-        button = React.createElement(LoginButton, { onClick: this.handleLoginClick });
       }
+      // else {
+      //   button = <LoginButton onClick={this.handleLoginClick} />;
+      // }
 
       return React.createElement(
         "div",
         null,
         button,
-        React.createElement(Greeting, { isLoggedIn: isLoggedIn })
+        React.createElement(Greeting, {
+          isLoggedIn: isLoggedIn,
+          handleChange: this.handleChange,
+          handleFormSubmit: this.handleFormSubmit
+        })
       );
     }
   }]);
 
   return LoginControl;
 }(React.Component);
+
+// Service component for user login
+
+
+var AuthService = function () {
+  // Initializing important variables
+  function AuthService(domain) {
+    _classCallCheck(this, AuthService);
+
+    this.domain = domain || "http://localhost:8000/api/users"; // API server domain
+    this.fetch = this.fetch.bind(this); // React binding stuff
+    this.login = this.login.bind(this);
+    // this.getProfile = this.getProfile.bind(this);
+  }
+
+  _createClass(AuthService, [{
+    key: "login",
+    value: function login(email, password) {
+      var _this3 = this;
+
+      // Get a token from api server using the fetch api
+      return this.fetch(this.domain + "/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: email,
+          password: password
+        })
+      }).then(function (res) {
+        _this3.setToken(res.token); // Setting the token in localStorage
+        return Promise.resolve(res);
+      });
+    }
+  }, {
+    key: "loggedIn",
+    value: function loggedIn() {
+      // Checks if there is a saved token and it's still valid
+      var token = this.getToken(); // GEtting token from localstorage
+      return !!token && !this.isTokenExpired(token); // handwaiving here
+    }
+  }, {
+    key: "isTokenExpired",
+    value: function isTokenExpired(token) {
+      try {
+        var decoded = decode(token);
+        if (decoded.exp < Date.now() / 1000) {
+          // Checking if token is expired. N
+          return true;
+        } else return false;
+      } catch (err) {
+        return false;
+      }
+    }
+  }, {
+    key: "setToken",
+    value: function setToken(idToken) {
+      // Saves user token to localStorage
+      localStorage.setItem("id_token", idToken);
+    }
+  }, {
+    key: "getToken",
+    value: function getToken() {
+      // Retrieves the user token from localStorage
+      return localStorage.getItem("id_token");
+    }
+  }, {
+    key: "logout",
+    value: function logout() {
+      // Clear user token and profile data from localStorage
+      localStorage.removeItem("id_token");
+    }
+
+    // getProfile() {
+    //   // Using jwt-decode npm package to decode the token
+    //   return decode(this.getToken());
+    // }
+
+  }, {
+    key: "fetch",
+    value: function (_fetch) {
+      function fetch(_x, _x2) {
+        return _fetch.apply(this, arguments);
+      }
+
+      fetch.toString = function () {
+        return _fetch.toString();
+      };
+
+      return fetch;
+    }(function (url, options) {
+      // performs api calls sending the required authentication headers
+      var headers = {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      };
+
+      // Setting Authorization header
+      // Authorization: Bearer xxxxxxx.xxxxxxxx.xxxxxx
+      if (this.loggedIn()) {
+        headers["Authorization"] = "Bearer " + this.getToken();
+      }
+
+      return fetch(url, Object.assign({
+        headers: headers
+      }, options)).then(this._checkStatus).then(function (response) {
+        return response.json();
+      });
+    })
+  }, {
+    key: "_checkStatus",
+    value: function _checkStatus(response) {
+      // raises an error in case response status is not a success
+      if (response.status >= 200 && response.status < 300) {
+        // Success status lies between 200 to 300
+        return response;
+      } else {
+        var error = new Error(response.statusText);
+        error.response = response;
+        throw error;
+      }
+    }
+  }]);
+
+  return AuthService;
+}();
+
+// Logged user greeting - returns Todos container
+
 
 function UserGreeting(props) {
   return React.createElement(
@@ -69,22 +230,63 @@ function UserGreeting(props) {
   );
 }
 
+// Anonymous user greeting - returns login form
 function GuestGreeting(props) {
   return React.createElement(
-    "h1",
-    null,
-    "Please sign up."
-  );
+    "div",
+    { className: "center" },
+    React.createElement(
+      "div",
+      { className: "card" },
+      React.createElement(
+        "h1",
+        null,
+        "Login"
+      ),
+      React.createElement(
+        "form",
+        null,
+        React.createElement("input", {
+          className: "form-item",
+          placeholder: "Email goes here...",
+          name: "email",
+          type: "text",
+          onChange: props.handleChange
+        }),
+        React.createElement("input", {
+          className: "form-item",
+          placeholder: "Password goes here...",
+          name: "password",
+          type: "password",
+          onChange: props.handleChange
+        }),
+        React.createElement("input", {
+          className: "form-submit",
+          value: "SUBMIT",
+          type: "submit",
+          onClick: props.handleFormSubmit
+        })
+      )
+    )
+  )
+
+  // todo: user registration
+  ;
 }
 
+// Greetings for two user roles (logged and anonymous)
 function Greeting(props) {
   var isLoggedIn = props.isLoggedIn;
   if (isLoggedIn) {
     return React.createElement(UserGreeting, null);
   }
-  return React.createElement(GuestGreeting, null);
+  return React.createElement(GuestGreeting, {
+    handleChange: props.handleChange,
+    handleFormSubmit: props.handleFormSubmit
+  });
 }
 
+// Link for login (reserved, not used)
 function LoginButton(props) {
   return React.createElement(
     "a",
@@ -93,6 +295,7 @@ function LoginButton(props) {
   );
 }
 
+// Link for user logout
 function LogoutButton(props) {
   return React.createElement(
     "a",
@@ -103,7 +306,7 @@ function LogoutButton(props) {
 
 //-------------------------------------------------------------------------------------------------------
 
-// Page title
+// Todos page title
 var Title = function Title(_ref) {
   var todoCount = _ref.todoCount;
 
@@ -123,7 +326,7 @@ var Title = function Title(_ref) {
   );
 };
 
-// Form for to-do adding
+// Form for adding todo
 
 var TodoForm = function (_React$Component2) {
   _inherits(TodoForm, _React$Component2);
@@ -131,39 +334,39 @@ var TodoForm = function (_React$Component2) {
   function TodoForm(props) {
     _classCallCheck(this, TodoForm);
 
-    var _this2 = _possibleConstructorReturn(this, (TodoForm.__proto__ || Object.getPrototypeOf(TodoForm)).call(this, props));
+    var _this4 = _possibleConstructorReturn(this, (TodoForm.__proto__ || Object.getPrototypeOf(TodoForm)).call(this, props));
 
-    _this2.handleChange = function (e) {
-      _this2.setState(_defineProperty({}, e.target.name, e.target.value));
+    _this4.handleChange = function (e) {
+      _this4.setState(_defineProperty({}, e.target.name, e.target.value));
     };
 
-    _this2.onSubmit = function (e) {
+    _this4.onSubmit = function (e) {
       e.preventDefault();
       var form = {
-        name: _this2.state.name,
-        description: _this2.state.description,
-        state: _this2.state.state
+        name: _this4.state.name,
+        description: _this4.state.description,
+        state: _this4.state.state
       };
-      _this2.props.addTodo(form);
-      _this2.setState({
+      _this4.props.addTodo(form);
+      _this4.setState({
         name: "",
         description: "",
         state: "1"
       });
     };
 
-    _this2.state = {
+    _this4.state = {
       name: "",
       description: "",
       state: "1"
     };
-    return _this2;
+    return _this4;
   }
 
   _createClass(TodoForm, [{
     key: "render",
     value: function render() {
-      var _this3 = this;
+      var _this5 = this;
 
       return React.createElement(
         "div",
@@ -180,7 +383,7 @@ var TodoForm = function (_React$Component2) {
               name: "name",
               value: this.state.name,
               onChange: function onChange(e) {
-                return _this3.handleChange(e);
+                return _this5.handleChange(e);
               }
             })
           ),
@@ -193,7 +396,7 @@ var TodoForm = function (_React$Component2) {
               name: "description",
               value: this.state.description,
               onChange: function onChange(e) {
-                return _this3.handleChange(e);
+                return _this5.handleChange(e);
               }
             })
           ),
@@ -203,7 +406,7 @@ var TodoForm = function (_React$Component2) {
               name: "state",
               value: this.state.state,
               onChange: function onChange(e) {
-                return _this3.handleChange(e);
+                return _this5.handleChange(e);
               }
             },
             React.createElement(
@@ -250,7 +453,7 @@ var TodoForm = function (_React$Component2) {
           React.createElement(
             "button",
             { onClick: function onClick(e) {
-                return _this3.onSubmit(e);
+                return _this5.onSubmit(e);
               } },
             "Submit"
           )
@@ -271,25 +474,25 @@ var EditableLabel = function (_React$Component3) {
   function EditableLabel(props) {
     _classCallCheck(this, EditableLabel);
 
-    var _this4 = _possibleConstructorReturn(this, (EditableLabel.__proto__ || Object.getPrototypeOf(EditableLabel)).call(this, props));
+    var _this6 = _possibleConstructorReturn(this, (EditableLabel.__proto__ || Object.getPrototypeOf(EditableLabel)).call(this, props));
 
-    _this4.state = {
+    _this6.state = {
       id: props.todo.id,
       name: props.todo.name,
       description: props.todo.description,
       type: props.type,
       editing: false
     };
-    _this4.initEditor();
-    _this4.edit = _this4.edit.bind(_this4);
-    _this4.save = _this4.save.bind(_this4);
-    return _this4;
+    _this6.initEditor();
+    _this6.edit = _this6.edit.bind(_this6);
+    _this6.save = _this6.save.bind(_this6);
+    return _this6;
   }
 
   _createClass(EditableLabel, [{
     key: "initEditor",
     value: function initEditor() {
-      var _this5 = this;
+      var _this7 = this;
 
       this.editor = React.createElement("input", {
         type: "text",
@@ -299,7 +502,7 @@ var EditableLabel = function (_React$Component3) {
           var key = event.which || event.keyCode;
           if (key === 13) {
             //enter key
-            _this5.save(event);
+            _this7.save(event);
           }
         },
         autoFocus: true
@@ -308,14 +511,14 @@ var EditableLabel = function (_React$Component3) {
   }, {
     key: "edit",
     value: function edit(e) {
-      var _setState;
+      var _setState2;
 
-      this.setState((_setState = {}, _defineProperty(_setState, e.target.name, e.target.value), _defineProperty(_setState, "editing", true), _setState));
+      this.setState((_setState2 = {}, _defineProperty(_setState2, e.target.name, e.target.value), _defineProperty(_setState2, "editing", true), _setState2));
     }
   }, {
     key: "save",
     value: function save(e) {
-      var _setState2;
+      var _setState3;
 
       var form = {
         id: this.state.id,
@@ -323,7 +526,7 @@ var EditableLabel = function (_React$Component3) {
         value: e.target.value
       };
       this.props.update(form);
-      this.setState((_setState2 = {}, _defineProperty(_setState2, e.target.name, e.target.value), _defineProperty(_setState2, "editing", false), _setState2));
+      this.setState((_setState3 = {}, _defineProperty(_setState3, e.target.name, e.target.value), _defineProperty(_setState3, "editing", false), _setState3));
     }
   }, {
     key: "componentDidUpdate",
@@ -344,7 +547,7 @@ var EditableLabel = function (_React$Component3) {
   return EditableLabel;
 }(React.Component);
 
-// Each Todo
+// Each Todo component
 
 
 var Todo = function Todo(_ref2) {
@@ -369,7 +572,7 @@ var Todo = function Todo(_ref2) {
   );
 };
 
-// All todos
+// All todo components or nothing
 var TodoList = function TodoList(_ref3) {
   var todos = _ref3.todos,
       remove = _ref3.remove,
@@ -386,7 +589,7 @@ var TodoList = function TodoList(_ref3) {
   );
 };
 
-// Container Component
+// Container component for Todos
 
 var TodoApp = function (_React$Component4) {
   _inherits(TodoApp, _React$Component4);
@@ -395,15 +598,15 @@ var TodoApp = function (_React$Component4) {
     _classCallCheck(this, TodoApp);
 
     // Set initial state
-    var _this6 = _possibleConstructorReturn(this, (TodoApp.__proto__ || Object.getPrototypeOf(TodoApp)).call(this, props));
+    var _this8 = _possibleConstructorReturn(this, (TodoApp.__proto__ || Object.getPrototypeOf(TodoApp)).call(this, props));
     // Pass props to parent class
 
 
-    _this6.state = {
+    _this8.state = {
       data: []
     };
-    _this6.apiUrl = "http://127.0.0.1:8000/api/todos";
-    return _this6;
+    _this8.apiUrl = "http://127.0.0.1:8000/api/todos";
+    return _this8;
   }
 
   // Lifecycle method
@@ -412,12 +615,12 @@ var TodoApp = function (_React$Component4) {
   _createClass(TodoApp, [{
     key: "componentDidMount",
     value: function componentDidMount() {
-      var _this7 = this;
+      var _this9 = this;
 
       // Make HTTP request with Axios
       axios.get(this.apiUrl).then(function (res) {
         // Set state with result
-        _this7.setState({ data: res.data || [] });
+        _this9.setState({ data: res.data || [] });
       });
     }
 
@@ -426,12 +629,12 @@ var TodoApp = function (_React$Component4) {
   }, {
     key: "addTodo",
     value: function addTodo(val) {
-      var _this8 = this;
+      var _this10 = this;
 
       // Update data
       axios.post(this.apiUrl, val).then(function (res) {
-        _this8.state.data.push(res.data);
-        _this8.setState({ data: _this8.state.data });
+        _this10.state.data.push(res.data);
+        _this10.setState({ data: _this10.state.data });
       });
     }
 
@@ -449,7 +652,7 @@ var TodoApp = function (_React$Component4) {
   }, {
     key: "removeTodo",
     value: function removeTodo(id) {
-      var _this9 = this;
+      var _this11 = this;
 
       // Filter all todos except the one to be removed
       var remainder = this.state.data.filter(function (todo) {
@@ -457,7 +660,7 @@ var TodoApp = function (_React$Component4) {
       });
       // Update state with filter
       axios.delete(this.apiUrl + "/" + id).then(function (res) {
-        _this9.setState({ data: remainder });
+        _this11.setState({ data: remainder });
       });
     }
   }, {

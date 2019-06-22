@@ -64,8 +64,8 @@ func Auth(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Param
 }
 
 // GetToken - function that creates new token for a logged in user
-func GetToken(us usermodel.User) (string, time.Time) /*map[string]interface{}*/ {
-	expiresAt := time.Now().Add(time.Minute * 100000)
+func GetToken(us usermodel.User) (string, time.Time) {
+	expiresAt := time.Now().Add(time.Minute * 60 * 24) // expires in 24 hours
 	tk := &Token{
 		UserID: us.ID,
 		Email:  us.Email,
