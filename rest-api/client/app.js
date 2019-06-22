@@ -8,6 +8,101 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var LoginControl = function (_React$Component) {
+  _inherits(LoginControl, _React$Component);
+
+  function LoginControl(props) {
+    _classCallCheck(this, LoginControl);
+
+    var _this = _possibleConstructorReturn(this, (LoginControl.__proto__ || Object.getPrototypeOf(LoginControl)).call(this, props));
+
+    _this.handleLoginClick = _this.handleLoginClick.bind(_this);
+    _this.handleLogoutClick = _this.handleLogoutClick.bind(_this);
+    _this.state = { isLoggedIn: false };
+    return _this;
+  }
+
+  _createClass(LoginControl, [{
+    key: "handleLoginClick",
+    value: function handleLoginClick() {
+      this.setState({ isLoggedIn: true });
+    }
+  }, {
+    key: "handleLogoutClick",
+    value: function handleLogoutClick() {
+      this.setState({ isLoggedIn: false });
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var isLoggedIn = this.state.isLoggedIn;
+      var button = void 0;
+
+      if (isLoggedIn) {
+        button = React.createElement(LogoutButton, { onClick: this.handleLogoutClick });
+      } else {
+        button = React.createElement(LoginButton, { onClick: this.handleLoginClick });
+      }
+
+      return React.createElement(
+        "div",
+        null,
+        button,
+        React.createElement(Greeting, { isLoggedIn: isLoggedIn })
+      );
+    }
+  }]);
+
+  return LoginControl;
+}(React.Component);
+
+function UserGreeting(props) {
+  return React.createElement(
+    "div",
+    null,
+    React.createElement(
+      "h1",
+      null,
+      "Welcome back!"
+    ),
+    React.createElement(TodoApp, null)
+  );
+}
+
+function GuestGreeting(props) {
+  return React.createElement(
+    "h1",
+    null,
+    "Please sign up."
+  );
+}
+
+function Greeting(props) {
+  var isLoggedIn = props.isLoggedIn;
+  if (isLoggedIn) {
+    return React.createElement(UserGreeting, null);
+  }
+  return React.createElement(GuestGreeting, null);
+}
+
+function LoginButton(props) {
+  return React.createElement(
+    "a",
+    { href: "#", onClick: props.onClick },
+    "Login"
+  );
+}
+
+function LogoutButton(props) {
+  return React.createElement(
+    "a",
+    { href: "#", onClick: props.onClick },
+    "Logout"
+  );
+}
+
+//-------------------------------------------------------------------------------------------------------
+
 // Page title
 var Title = function Title(_ref) {
   var todoCount = _ref.todoCount;
@@ -30,45 +125,45 @@ var Title = function Title(_ref) {
 
 // Form for to-do adding
 
-var TodoForm = function (_React$Component) {
-  _inherits(TodoForm, _React$Component);
+var TodoForm = function (_React$Component2) {
+  _inherits(TodoForm, _React$Component2);
 
   function TodoForm(props) {
     _classCallCheck(this, TodoForm);
 
-    var _this = _possibleConstructorReturn(this, (TodoForm.__proto__ || Object.getPrototypeOf(TodoForm)).call(this, props));
+    var _this2 = _possibleConstructorReturn(this, (TodoForm.__proto__ || Object.getPrototypeOf(TodoForm)).call(this, props));
 
-    _this.handleChange = function (e) {
-      _this.setState(_defineProperty({}, e.target.name, e.target.value));
+    _this2.handleChange = function (e) {
+      _this2.setState(_defineProperty({}, e.target.name, e.target.value));
     };
 
-    _this.onSubmit = function (e) {
+    _this2.onSubmit = function (e) {
       e.preventDefault();
       var form = {
-        name: _this.state.name,
-        description: _this.state.description,
-        state: _this.state.state
+        name: _this2.state.name,
+        description: _this2.state.description,
+        state: _this2.state.state
       };
-      _this.props.addTodo(form);
-      _this.setState({
+      _this2.props.addTodo(form);
+      _this2.setState({
         name: "",
         description: "",
         state: "1"
       });
     };
 
-    _this.state = {
+    _this2.state = {
       name: "",
       description: "",
       state: "1"
     };
-    return _this;
+    return _this2;
   }
 
   _createClass(TodoForm, [{
     key: "render",
     value: function render() {
-      var _this2 = this;
+      var _this3 = this;
 
       return React.createElement(
         "div",
@@ -85,7 +180,7 @@ var TodoForm = function (_React$Component) {
               name: "name",
               value: this.state.name,
               onChange: function onChange(e) {
-                return _this2.handleChange(e);
+                return _this3.handleChange(e);
               }
             })
           ),
@@ -98,7 +193,7 @@ var TodoForm = function (_React$Component) {
               name: "description",
               value: this.state.description,
               onChange: function onChange(e) {
-                return _this2.handleChange(e);
+                return _this3.handleChange(e);
               }
             })
           ),
@@ -108,7 +203,7 @@ var TodoForm = function (_React$Component) {
               name: "state",
               value: this.state.state,
               onChange: function onChange(e) {
-                return _this2.handleChange(e);
+                return _this3.handleChange(e);
               }
             },
             React.createElement(
@@ -155,7 +250,7 @@ var TodoForm = function (_React$Component) {
           React.createElement(
             "button",
             { onClick: function onClick(e) {
-                return _this2.onSubmit(e);
+                return _this3.onSubmit(e);
               } },
             "Submit"
           )
@@ -170,31 +265,31 @@ var TodoForm = function (_React$Component) {
 // Changes static text label to input
 
 
-var EditableLabel = function (_React$Component2) {
-  _inherits(EditableLabel, _React$Component2);
+var EditableLabel = function (_React$Component3) {
+  _inherits(EditableLabel, _React$Component3);
 
   function EditableLabel(props) {
     _classCallCheck(this, EditableLabel);
 
-    var _this3 = _possibleConstructorReturn(this, (EditableLabel.__proto__ || Object.getPrototypeOf(EditableLabel)).call(this, props));
+    var _this4 = _possibleConstructorReturn(this, (EditableLabel.__proto__ || Object.getPrototypeOf(EditableLabel)).call(this, props));
 
-    _this3.state = {
+    _this4.state = {
       id: props.todo.id,
       name: props.todo.name,
       description: props.todo.description,
       type: props.type,
       editing: false
     };
-    _this3.initEditor();
-    _this3.edit = _this3.edit.bind(_this3);
-    _this3.save = _this3.save.bind(_this3);
-    return _this3;
+    _this4.initEditor();
+    _this4.edit = _this4.edit.bind(_this4);
+    _this4.save = _this4.save.bind(_this4);
+    return _this4;
   }
 
   _createClass(EditableLabel, [{
     key: "initEditor",
     value: function initEditor() {
-      var _this4 = this;
+      var _this5 = this;
 
       this.editor = React.createElement("input", {
         type: "text",
@@ -204,7 +299,7 @@ var EditableLabel = function (_React$Component2) {
           var key = event.which || event.keyCode;
           if (key === 13) {
             //enter key
-            _this4.save(event);
+            _this5.save(event);
           }
         },
         autoFocus: true
@@ -293,22 +388,22 @@ var TodoList = function TodoList(_ref3) {
 
 // Container Component
 
-var TodoApp = function (_React$Component3) {
-  _inherits(TodoApp, _React$Component3);
+var TodoApp = function (_React$Component4) {
+  _inherits(TodoApp, _React$Component4);
 
   function TodoApp(props) {
     _classCallCheck(this, TodoApp);
 
     // Set initial state
-    var _this5 = _possibleConstructorReturn(this, (TodoApp.__proto__ || Object.getPrototypeOf(TodoApp)).call(this, props));
+    var _this6 = _possibleConstructorReturn(this, (TodoApp.__proto__ || Object.getPrototypeOf(TodoApp)).call(this, props));
     // Pass props to parent class
 
 
-    _this5.state = {
+    _this6.state = {
       data: []
     };
-    _this5.apiUrl = "http://127.0.0.1:8000/api/todos";
-    return _this5;
+    _this6.apiUrl = "http://127.0.0.1:8000/api/todos";
+    return _this6;
   }
 
   // Lifecycle method
@@ -317,12 +412,12 @@ var TodoApp = function (_React$Component3) {
   _createClass(TodoApp, [{
     key: "componentDidMount",
     value: function componentDidMount() {
-      var _this6 = this;
+      var _this7 = this;
 
       // Make HTTP request with Axios
       axios.get(this.apiUrl).then(function (res) {
         // Set state with result
-        _this6.setState({ data: res.data || [] });
+        _this7.setState({ data: res.data || [] });
       });
     }
 
@@ -331,12 +426,12 @@ var TodoApp = function (_React$Component3) {
   }, {
     key: "addTodo",
     value: function addTodo(val) {
-      var _this7 = this;
+      var _this8 = this;
 
       // Update data
       axios.post(this.apiUrl, val).then(function (res) {
-        _this7.state.data.push(res.data);
-        _this7.setState({ data: _this7.state.data });
+        _this8.state.data.push(res.data);
+        _this8.setState({ data: _this8.state.data });
       });
     }
 
@@ -354,7 +449,7 @@ var TodoApp = function (_React$Component3) {
   }, {
     key: "removeTodo",
     value: function removeTodo(id) {
-      var _this8 = this;
+      var _this9 = this;
 
       // Filter all todos except the one to be removed
       var remainder = this.state.data.filter(function (todo) {
@@ -362,7 +457,7 @@ var TodoApp = function (_React$Component3) {
       });
       // Update state with filter
       axios.delete(this.apiUrl + "/" + id).then(function (res) {
-        _this8.setState({ data: remainder });
+        _this9.setState({ data: remainder });
       });
     }
   }, {
@@ -385,4 +480,4 @@ var TodoApp = function (_React$Component3) {
   return TodoApp;
 }(React.Component);
 
-ReactDOM.render(React.createElement(TodoApp, null), document.getElementById("root"));
+ReactDOM.render(React.createElement(LoginControl, null), document.getElementById("root"));
