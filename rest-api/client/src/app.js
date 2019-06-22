@@ -3,7 +3,7 @@ const Title = ({ todoCount }) => {
   return (
     <div>
       <div>
-        <h1>To-do's count: {todoCount ? todoCount.length : 0}</h1>
+        <h1>To-do&apos;s count: {todoCount ? todoCount.length : 0}</h1>
       </div>
     </div>
   );
