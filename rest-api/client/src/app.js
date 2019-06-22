@@ -72,7 +72,7 @@ class TodoForm extends React.Component {
             <option value="2">wait</option>
             <option value="3">canceled</option>
             <option value="4">blocked</option>
-            <option value="5">in process/doing"</option>
+            <option value="5">in process/doing</option>
             <option value="6">review</option>
             <option value="7">done</option>
             <option value="8">archived</option>

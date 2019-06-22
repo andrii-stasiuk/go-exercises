@@ -134,7 +134,7 @@ var TodoForm = function (_React$Component) {
             React.createElement(
               "option",
               { value: "5" },
-              "in process/doing\""
+              "in process/doing"
             ),
             React.createElement(
               "option",
