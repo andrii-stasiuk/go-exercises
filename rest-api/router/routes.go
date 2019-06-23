@@ -12,9 +12,9 @@ func TodoRoutes(hl todo.TodoHandlers) Routes {
 		Route{"GET", "/", false, hl.Default},
 		Route{"GET", "/api/todos/", false, hl.TodoIndex},
 		Route{"GET", "/api/todos/:id/", false, hl.TodoShow},
-		Route{"DELETE", "/api/todos/:id/", false, hl.TodoDelete},
-		Route{"POST", "/api/todos/", false, hl.TodoCreate},
-		Route{"PATCH", "/api/todos/:id/", false, hl.TodoUpdate},
+		Route{"DELETE", "/api/todos/:id/", true, hl.TodoDelete},
+		Route{"POST", "/api/todos/", true, hl.TodoCreate},
+		Route{"PATCH", "/api/todos/:id/", true, hl.TodoUpdate},
 	}
 	return routes
 }
