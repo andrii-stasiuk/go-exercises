@@ -3,8 +3,6 @@ CREATE TABLE public.states (
     state text NOT NULL UNIQUE
 );
 
-
-
 INSERT INTO public.states (id, state) VALUES
 (1, 'created'),
 (2, 'wait'),

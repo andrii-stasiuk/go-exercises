@@ -39,6 +39,12 @@ func (h TodoHandlers) TodoUpdate(w http.ResponseWriter, r *http.Request, params 
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Incorrect ID")
 		return
 	}
+	if r.Context().Value("user_id").(uint64) < 1 {
+		log.Println("Incorrect User ID")
+		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Incorrect User ID")
+		return
+	}
+	todo.UserID = r.Context().Value("user_id").(uint64)
 	res, err := h.SQL.Update(todo)
 	if err != nil {
 		log.Println(err)

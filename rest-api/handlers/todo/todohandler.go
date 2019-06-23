@@ -6,9 +6,9 @@ import (
 )
 
 type todoInterface interface {
-	Index() ([]todomodel.Todo, error)
-	Show(id string) (todomodel.Todo, error)
-	Delete(id string) (todomodel.Todo, error)
+	Index(userID string) ([]todomodel.Todo, error)
+	Show(todoID string, userID string) (todomodel.Todo, error)
+	Delete(todoID string, userID string) (todomodel.Todo, error)
 	Create(todo todomodel.Todo) (todomodel.Todo, error)
 	Update(todo todomodel.Todo) (todomodel.Todo, error)
 }

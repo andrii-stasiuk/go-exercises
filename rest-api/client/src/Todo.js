@@ -205,10 +205,12 @@ class TodoApp extends Component {
   // Lifecycle method
   componentDidMount() {
     // Make HTTP request with Axios
-    axios.get(this.apiUrl).then(res => {
-      // Set state with result
-      this.setState({ data: res.data || [] });
-    });
+    this.fetchClient()
+      .get(this.apiUrl)
+      .then(res => {
+        // Set state with result
+        this.setState({ data: res.data || [] });
+      });
   }
 
   fetchClient = () => {

@@ -57,8 +57,7 @@ func Auth(fn func(w http.ResponseWriter, r *http.Request, param httprouter.Param
 			responses.WriteErrorResponse(w, http.StatusUnauthorized, "Token is not valid")
 			return
 		}
-		userKey := "user"
-		ctx := context.WithValue(r.Context(), &userKey, claims)
+		ctx := context.WithValue(r.Context(), "user_id", claims.UserID)
 		fn(w, r.WithContext(ctx), param)
 	}
 }
