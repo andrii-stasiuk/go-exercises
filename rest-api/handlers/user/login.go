@@ -35,13 +35,13 @@ func (uh UserHandlers) UserLogin(w http.ResponseWriter, r *http.Request, _ httpr
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unable to login")
 		return
 	}
-	tokenString, expirationTime := auth.GetToken(res)
+	tokenString, err := auth.GetToken(res)
+	if err != nil {
+		log.Println(err)
+		responses.WriteErrorResponse(w, http.StatusInternalServerError, "Error while getting token")
+		return
+	}
 	w.Header().Set("Authorization", "Bearer "+tokenString)
-	http.SetCookie(w, &http.Cookie{
-		Name:    "x-access-token",
-		Value:   tokenString,
-		Expires: expirationTime,
-	})
 	resp := make(map[string]interface{})
 	resp["token"] = tokenString // Store the token in the response
 	resp["user"] = map[string]interface{}{"id": res.ID, "email": res.Email, "created_at": res.CreatedAt}
