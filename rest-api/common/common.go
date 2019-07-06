@@ -1,5 +1,5 @@
-/*Package core to support the main application*/
-package core
+/*Package common to support the main application*/
+package common
 
 import (
 	"context"
@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-
-	"github.com/jinzhu/gorm"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -29,22 +27,6 @@ func DBConnectSQLX(driverName, dataSourceName string) (*sqlx.DB, error) {
 	}
 	db.SetMaxIdleConns(10)
 	db.SetMaxOpenConns(100)
-	return db, nil
-}
-
-// DBConnectGORM - reserved for future purposes
-func DBConnectGORM(driverName, dataSourceName string) (interface{}, error) {
-	db, err := gorm.Open(driverName, dataSourceName)
-	if err != nil {
-		return nil, err
-	}
-	err = db.DB().Ping()
-	if err != nil {
-		return nil, err
-	}
-	db.DB().SetMaxIdleConns(10)
-	db.DB().SetMaxOpenConns(100)
-	db.Debug().AutoMigrate()
 	return db, nil
 }
 

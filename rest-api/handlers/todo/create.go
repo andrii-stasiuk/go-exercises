@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/andrii-stasiuk/go-exercises/rest-api/core"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/common"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/models/todomodel"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/responses"
 	"github.com/julienschmidt/httprouter"
@@ -22,7 +22,7 @@ func (h TodoHandlers) TodoCreate(w http.ResponseWriter, r *http.Request, _ httpr
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Unable to decode JSON")
 		return
 	}
-	if !core.CheckStr(todo.Name) || !core.CheckStr(todo.Description) || !core.CheckInt(todo.State) {
+	if !common.CheckStr(todo.Name) || !common.CheckStr(todo.Description) || !common.CheckInt(todo.State) {
 		log.Println("Incorrect input data")
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Incorrect input data")
 		return

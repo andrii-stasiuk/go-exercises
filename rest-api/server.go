@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/andrii-stasiuk/go-exercises/rest-api/core"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/common"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/handlers/todo"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/handlers/user"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/models/todomodel"
@@ -26,7 +26,7 @@ func init() {
 func main() {
 	log.Println("Server is starting...")
 
-	dataBase, err := core.DBConnectSQLX("postgres", dbURLPtr)
+	dataBase, err := common.DBConnectSQLX("postgres", dbURLPtr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func main() {
 	newRouer := router.NewRouter(
 		router.TodoRoutes(todo.New(&todoModel)),
 		router.UserRoutes(user.New(&userModel)))
-	srv := core.NewServer(&addrPtr, newRouer)
+	srv := common.NewServer(&addrPtr, newRouer)
 
 	done := make(chan struct{}, 1)
 	// Setting up signal capturing
@@ -48,9 +48,9 @@ func main() {
 	// interrupt signal sent from terminal
 	signal.Notify(quit, os.Interrupt)
 
-	go core.ShutdownServer(srv, quit, done)
+	go common.ShutdownServer(srv, quit, done)
 
-	core.StartServer(&addrPtr, srv)
+	common.StartServer(&addrPtr, srv)
 
 	<-done
 	log.Println("Server gracefully stopped")

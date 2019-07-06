@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/andrii-stasiuk/go-exercises/rest-api/core"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/common"
 	"github.com/andrii-stasiuk/go-exercises/rest-api/responses"
 	"github.com/julienschmidt/httprouter"
 )
@@ -19,7 +19,7 @@ func (h TodoHandlers) TodoShow(w http.ResponseWriter, r *http.Request, params ht
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Incorrect User ID")
 		return
 	}
-	if !core.CheckInt(params.ByName("id")) {
+	if !common.CheckInt(params.ByName("id")) {
 		log.Println("Incorrect ID")
 		responses.WriteErrorResponse(w, http.StatusUnprocessableEntity, "Incorrect ID")
 		return

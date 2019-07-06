@@ -2,7 +2,7 @@
 package usermodel
 
 import (
-	"github.com/andrii-stasiuk/go-exercises/rest-api/core"
+	"github.com/andrii-stasiuk/go-exercises/rest-api/common"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -26,7 +26,7 @@ func NewUser(db *sqlx.DB) Users {
 
 // Register method for user registration logic
 func (u Users) Register(user User) (User, error) {
-	hashedPassword, err := core.HashPassword(user.Password)
+	hashedPassword, err := common.HashPassword(user.Password)
 	if err != nil {
 		return User{}, err
 	}
@@ -43,7 +43,7 @@ func (u Users) Login(user User) (User, error) {
 	if err != nil {
 		return User{}, err
 	}
-	err = core.CheckPasswordHash(clearPassword, user.Password)
+	err = common.CheckPasswordHash(clearPassword, user.Password)
 	if err != nil {
 		return User{}, err
 	}
